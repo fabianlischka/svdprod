@@ -26,3 +26,5 @@ if d == 0
 else
     mu      = a2 -  b^2 / ( d + sign(d)*sqrt( d^2 + b^2 ) );
 end;
+
+% flop count: around 14
