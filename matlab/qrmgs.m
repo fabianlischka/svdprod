@@ -1,5 +1,7 @@
 function [Q,R] = qrmgs( A )
 % QR-decomposition, Modified Gram Schmidt (numerically stable, but Q might not be very orthogonal)
+
+% reference: Golub, Van Loan; 3rd ed; 5.2.8
 % $Id$
 
 M = size( A, 1 );   % rows

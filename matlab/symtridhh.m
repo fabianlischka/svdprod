@@ -2,7 +2,8 @@ function A = symtridhh( A )
 % SYMTRIDHH brings a symmetric real matrix A in similar tridiagonal form
 % using similar householder transformations. 
 
-% $Header$
+% reference: Golub, Van Loan; 3rd ed; 8.3.1
+% $Id$
 
 if any(any(A ~= A'))
     error('Input must be symmetric!')

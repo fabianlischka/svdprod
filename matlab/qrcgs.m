@@ -1,5 +1,7 @@
 function [Q,R] = qrcgs( A )
 % QR-decomposition, Classical Gram Schmidt (numerically unstable)
+
+% reference: Golub, Van Loan; 3rd ed; 5.2.7
 % $Id$
 
 M = size( A, 1 );   % rows
