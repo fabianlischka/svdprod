@@ -1,19 +1,18 @@
-function [ Q, R ] = qrsymtrid( A )
+function [ Q, R ] = qrsymtrid( T )
 % QR decomposition for symmetric tridiagonal matrices
-% QRSYMTRID returns Q and R such that A=QR, Q is orthogonal (and upper
+% QRSYMTRID returns Q and R such that T=QR, Q is orthogonal (and upper
 % Hessenberg), and R is upper triangular (of bandwidth 2, ie diagonal and
-% two superdiagonals). R is returned as M x 3 matrix, with the bottom right
-% corner empty (zero).
+% two superdiagonals).
 
-% reference: Golub, Van Loan; 3rd ed; 8.3.3
+% reference: Golub, Van Loan; 3rd ed; ch. 8.3.3
 % $Id$
 
-N = size( A, 1 );
-if N ~= size( A, 2 ) || any(any(A ~= A'))
-    error( 'input A must be symmetric' );
+N = size( T, 1 );
+if N ~= size( T, 2 ) || any(any(T ~= T'))
+    error( 'input T must be symmetric' );
 end;
 
-R   = A;
+R   = T;
 Q   = eye( N );
 CS  = zeros( N-1, 2 );
 
