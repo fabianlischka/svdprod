@@ -1,9 +1,9 @@
 % Gaussian Elimination, no pivoting
 % $Id$
 
-M = size( A, 1 )    % rows
-N = size( A, 2 )    % cols
-K = min( M, N )     % min = steps
+M = size( A, 1 );    % rows
+N = size( A, 2 );    % cols
+K = min( M, N );     % min = steps
 
 U = A;              % U will be K x N
 L = eye( M, K );    % L will be M x K
