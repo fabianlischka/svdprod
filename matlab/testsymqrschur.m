@@ -21,7 +21,7 @@ for N=5:25:55
         % disp( sprintf( 'eval 1norm: %12g, infnorm: %12g; Res: %12g', norm( ErrEv, 1 ), norm( ErrEv, 'inf' ), Res ) );
         disp( sprintf( 'Type %2g: eval 2-norm: %12g, RelRes: %12g, Orth: %12g', Typ, ErrEv, RelRes, Orth ) );
         if RelRes > tol || Orth > tol || ErrEv > tol
-            disp( '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' );
+            disp( '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^' );
         end
     end;
 end
@@ -41,7 +41,7 @@ for Typ=0:(2^N-2)
     % disp( sprintf( 'eval 1norm: %12g, infnorm: %12g; Res: %12g', norm( ErrEv, 1 ), norm( ErrEv, 'inf' ), Res ) );
     disp( sprintf( 'Type %2g: eval 2-norm: %12g, RelRes: %12g, Orth: %12g', Typ, ErrEv, RelRes, Orth ) );
     if RelRes > tol || Orth > tol || ErrEv > tol
-        disp( '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' );
+        disp( '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^' );
     end
 end;
 

@@ -20,7 +20,7 @@ for N=5:25:55
         VOrth   = norm( V'*V - eye( N ) );        
         disp( sprintf( 'Type %2g: svd 2-norm: %12g, RelRes: %12g, UOrth: %12g, VOrth: %12g', Typ, ErrSvd, RelRes, UOrth, VOrth ) );
         if RelRes > tol || UOrth > tol || VOrth > tol || ErrSvd > tol
-            disp( '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' );
+            disp( '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^' );
         end
     end;
 end
@@ -39,7 +39,7 @@ for Typ=0:(2^N-1)
         VOrth   = norm( V'*V - eye( N ) );        
         disp( sprintf( 'Type %2g: svd 2-norm: %12g, RelRes: %12g, UOrth: %12g, VOrth: %12g', Typ, ErrSvd, RelRes, UOrth, VOrth ) );
         if RelRes > tol || UOrth > tol || VOrth > tol || ErrSvd > tol
-            disp( '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' );
+            disp( '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^' );
             err;
         end
 end;

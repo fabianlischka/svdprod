@@ -19,7 +19,7 @@ for N=3:37:77
         Orth    = norm( Q'*Q - eye( N ) );
         disp( sprintf( 'Type %2g: eval infnorm: %12g; RelRes: %12g, Orth: %12g', Typ, ErrEv, RelRes, Orth ) );
         if RelRes > tol || Orth > tol || ErrEv > tol
-            disp( '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' );
+            disp( '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^' );
         end
     end;
 end;
