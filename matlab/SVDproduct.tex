@@ -1,5 +1,5 @@
 \documentclass[11pt]{article}
-%\usepackage{graphicx}
+\usepackage[dvips]{graphicx}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{shortvrb}
@@ -51,6 +51,12 @@
 	\lstinputlisting[language=Matlab, basicstyle=\footnotesize, numbers=none, frame=single, columns=flexible, captionpos = t, caption={Testing \textbf{#1.m}}, deletekeywords={norm}]{#1.log}
 }
 
+\newcommand{\mypic}[2]
+{
+\begin{figure}[tbhp]        \centering
+	\includegraphics[scale=0.6]{#1.eps}
+       \caption{\label{f:#1}#2} \end{figure} 
+}
 
 \MakeShortVerb{\$}
 \MakeShortVerb{\@}
@@ -264,6 +270,34 @@ Then, the product $\j At_K \cdots \j At_1$ of these matrices is also upper trian
 
 A complete implementation is on page \pageref{rc:bidigprod}. It requires around $(4+4K) N^3$ flops.
 
+\subsection{Accuracy}
+\mypic{re2K5NNN}{The explicit algorithm (o) has far higher relative errors than the implicit one (+). Here, the product of 5 Toeplitz matrices is plotted for different matrix sizes.}
+
+We tested the algorithm against a few cases in which the singular values are explicitly known, in an attempt to replicate the argument in \cite{587733}. In particular, we chose two cases: A product of matrices with very high dynamical range of singular values, and with orthogonal transformations chosen such ($\cdots A_2 Q Q^T A_1$) that they all canceled out in the product, so that the final matrix product was $U\Sigma^KV$, and hence had singular values $\sigma_k^K$.
+
+These matrices were generated with this code snippet:
+\begin{lstlisting}
+	S = diag(2.^(-1:-1:-N));
+	[V,X]=qr(randn(N));	% generate random orthogonal V	for k=1:K
+		[U,X]=qr(randn(N));		A(:,:,k) = U'*S*V;		V=U;	end;	true = 2.^(K*(-1:-1:-N))';
+ \end{lstlisting}
+
+In the next case, we chose symmetric tridiagonal Toeplitz matrices. If the columns contains $a$, and the sub- and superdiagonal $b$, then the eigenvalues (and singular values) are known to be
+\[
+	a + 2b\cos\left(\frac{i\pi}{N+1}\right), \quad i=1\ldots N,
+\]
+and since these matrices are normal, the singular values of the power are just the powers of the singular values.
+
+\mypic{re1K5NNN}{The implicit relative errors (+) are still far better, but display a plateau at 1---the computed singular value is zero. 5 matrices of type one are plotted for different sizes.}
+
+In the figures, we compare the (log) relative error of the implicitly computed singular values (marked with a +) with the relative error of the explicitly computed singular values (marked with a o), ie. with the true singular value $\sigma_i$, we plot $\frac{|\sigma_i^{impl} - \sigma_i|}{\sigma_i}$ for $i=1\ldots N$ versus $\sigma_i$, and similarly with the explicitly computed ones. We observe that the relative accuracy of the explicitly computed singular values plummets precipitously---these values are useless.\footnote{We also notice a peculiarity with the implicitly computed singular values: the relative error reaches a plateau at 1, for example in figure \ref{f:re1K5NNN} on page \pageref{f:re1K5NNN}. This is because the implicitly computed singular value is exactly zero. We have investigated this, but not reached a conclusion yet. The exact zero appears already after the bidiagonalization, so it is not an artefact of the tolerances used in the GK SVD step, where we deliberately set small values to zero. Whatever the reason for this plateau is, obviously a relative error of 1---as big as it is---is quite a bit better than relative errors of $10^{40}$, as displayed by the explicit calculation.}
+
+\mypic{re2K21NNN}{The explicit algorithm (o) has still far higher relative errors of the computed singular values than the implicit one (+).}
+
+Another observation to make is that the explicitly computed singular values deteriorate when we increase the number of matrices in the product, see figure \ref{f:re2KKKN20} on page \pageref{f:re2KKKN20}. The implicitly computed singular values are far more robust with respect to the number of factors.
+
+\mypic{re2KKKN20}{When the relative errors are plotted for constant matrix size 20, but more and more matrices, we observe that the explicitly computed singular values (o) deteriorate, but the implicitly computed ones (+) don't.} 
+
 \section{Testing}
 All algorithms were tested with respect to internal consistency (that is, are matrices that are supposed to be orthogonal really orthogonal? When the algorithm computes a decomposition, does the composition of the returned matrices recover the original matrix?), as well as by comparison to the reference solutions computed by MATLAB. 
 
@@ -307,8 +341,6 @@ This facilitated finding certain bugs. For example, if the '$\le$' in line 21 in
 \readlog{symqrschur}
 \readlog{gksvd}
 \readlog{gksvdprod}
-
-\nocite{*}
 
 \bibliography{/Users/frl/Documents/Meins/Stanford/Math/NLA}\bibliographystyle{plain}
 
