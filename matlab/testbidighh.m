@@ -1,7 +1,7 @@
 % $Id$
 
-N = 20;
-for M = 20:10:30
+N = 30;
+for M = 30:30:60
     disp( sprintf( '\nTesting BIDIGHH with various %g x %g matrices', M, N )); 
     for Typ = 1:14
         TestMat = gentestmat( Typ, M, N, 0 );
