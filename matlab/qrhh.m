@@ -1,5 +1,5 @@
 % % QR-decomposition, Householder reflections
-% $Id$
+% $Header$
 
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols
