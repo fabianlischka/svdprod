@@ -2,8 +2,12 @@
 
 N = 60;
 
+disp( 'We compute eigenvalues of a test matrix using eig(), and then using the schur decomposition' );
+disp( 'computed by symqrschur, and display the norm of the difference of the vector of eigenvalues' );
+disp( 'and also relative to the norm of the vector of eigenvalues itself. The latter should always' );
+disp( 'be around 1e-15.' );
 disp( sprintf( '\nTesting SYMQRSCHUR with various (symmetrized) %g x %g matrices', N, N )); 
-for Typ = 1:12
+for Typ = 1:14
 	TestMat = gentestmat( Typ, N, N, 0 );
     TestMat = TestMat + TestMat';
     Ev      = eig( TestMat );
