@@ -1,6 +1,11 @@
 % $Id$
 
-fid = 1;
+wtf = 0;
+if wtf
+    fid = fopen( 'gksvd.log', 'w' );
+else
+    fid = 1;
+end;
 tol = 1e-10;
 
 fprintf( fid,  '\n\nTEST GKSVD\n' );
@@ -45,3 +50,5 @@ for Typ=0:(2^N-1)
             err;
         end
 end;
+
+if wtf; fclose( fid ); end;

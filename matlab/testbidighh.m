@@ -1,6 +1,12 @@
 % $Id$
 
-fid = 1;
+wtf = 0;
+if wtf
+    fid = fopen( 'bidighh.log', 'w' );
+else
+    fid = 1;
+end;
+
 tol = 1e-12;
 N   = 30;
 for M = 30:21:72
@@ -25,3 +31,5 @@ for M = 30:21:72
         end;
     end;
 end;
+
+if wtf; fclose( fid ); end;

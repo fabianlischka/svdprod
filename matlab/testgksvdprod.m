@@ -2,7 +2,12 @@ function testgksvdprod
 % $Id$
 
 global err;
-fid = 1;
+wtf = 0;
+if wtf
+    fid = fopen( 'gksvdprod.log', 'w' );
+else
+    fid = 1;
+end;
 tol = 1e-10;
 
 fprintf( fid,  '\n\nTEST GKSVDPROD\n' );
@@ -104,3 +109,5 @@ switch Typ
 		true = (a + 2*cos((1:N)'/(N+1) * pi )).^K;
 end;
 true = sort( true );
+
+if wtf; fclose( fid ); end;

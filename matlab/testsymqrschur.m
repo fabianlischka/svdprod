@@ -1,6 +1,11 @@
 % $Id$
 
-fid = 1;
+wtf = 0;
+if wtf
+    fid = fopen( 'symqrschur.log', 'w' );
+else
+    fid = 1;
+end;
 tol = 1e-10;
 
 fprintf( fid,  '\n\nTEST SYMQRSCHUR\n' );
@@ -43,3 +48,5 @@ for Typ=0:(2^N-2)
         fprintf( fid,  '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^\n' );
     end
 end;
+
+if wtf; fclose( fid ); end;

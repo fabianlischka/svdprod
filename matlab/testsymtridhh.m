@@ -1,6 +1,12 @@
 % $Id$
 
-fid = 1;
+wtf = 0;
+if wtf
+    fid = fopen( 'symtridhh.log', 'w' );
+else
+    fid = 1;
+end;
+
 tol = 1e-10;
 fprintf( fid,  '\n\nTEST SYMTRIDHH\n' );
 fprintf( fid,  'We generate symmetrized testmatrices A, and compute tridiag T = Q''AQ, with Q orthogonal.\n' );
@@ -24,3 +30,5 @@ for N=3:37:77
         end
     end;
 end;
+
+if wtf; fclose( fid ); end;
