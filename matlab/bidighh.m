@@ -11,7 +11,7 @@ function [ B, U, V ] = bidighh( A );
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols
 if M < N
-    err( 'A must have M >= N' );
+    error( 'A must have M >= N' );
 end;
 
 B       = A;              % B will be M x N
