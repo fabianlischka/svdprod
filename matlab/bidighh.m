@@ -62,7 +62,7 @@ if nargout > 1
         v(k)        = 1;
         v(k+1:N)    = B(k-1,(k+1):N)';
         V(k:N,k:N)  = V(k:N,k:N) - gammas( k-1 ) * v(k:N) * v(k:N)' * V(k:N,k:N);
-        B(k-1,k:N)  = 0;
+        B(k-1,k+1:N)= 0;
     end;
 else
     B = [ diag(B) [ diag(B,1); 0 ] ];
