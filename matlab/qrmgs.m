@@ -1,4 +1,5 @@
 % QR-decomposition, Modified Gram Schmidt (numerically stable, but Q might not be very orthogonal)
+% $Id$
 
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols

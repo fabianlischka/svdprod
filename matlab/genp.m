@@ -1,4 +1,5 @@
 % Gaussian Elimination, no pivoting
+% $Id$
 
 M = size( A, 1 )    % rows
 N = size( A, 2 )    % cols

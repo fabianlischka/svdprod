@@ -1,3 +1,5 @@
+% $Id$
+
 As      = { '-triu( ones( N ) ) + 2 * diag( ones( N, 1 ) )',
             'triu( 10*rand( N ) - 1 ) - 20 * diag( ones( N, 1 ) )',
             'rand( N )',

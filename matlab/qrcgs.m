@@ -1,4 +1,5 @@
 % QR-decomposition, Classical Gram Schmidt (numerically unstable)
+% $Id$
 
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols
