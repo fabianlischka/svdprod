@@ -11,10 +11,17 @@ R = zeros( K, N );  % R will be K x N
 
 for k = 1:K
     % orthogonalisieren
+    % iterative version
+    if 0
     for n = 1:(k-1)
         R(n,k) = Q(:,n)' * A(:,k);              % scalar product: M mult, M-1 add
         Q(:,k) = Q(:,k) - Q(:,n) * R(n,k);      % M mult, M add
     end
+    end
+    
+    % compact version
+    R(1:(k-1),k) = Q(:,1:(k-1))' * A(:,k);      % matrix product
+    Q(:,k)       = A(:,k) - Q(:,1:(k-1)) * R(1:(k-1),k);
     % ie 4M*(k-1) flops
     
     % normalisieren
