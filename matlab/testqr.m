@@ -5,14 +5,13 @@
 
 qralgos = { 'qr', 'qrhh', 'qrcgs', 'qrmgs' };
 
+M = 20;
 N = 20;
-M = 30;
 
 disp( sprintf( '\nTesting various QR algorithms, reporting orthogonality (ie norm of Q''Q-I)\n and norm of A-QR (smaller=better)')); 
-for Typ = 1:6
+for Typ = 1:11
 	TestMat = gentestmat( Typ, M, N );
-	
-	for k = 1:size( qralgos, 2 )
+    for k = 1:size( qralgos, 2 )
         if k == 1
             [Q,R]   = feval( qralgos{ k }, TestMat, 0 );
         else
