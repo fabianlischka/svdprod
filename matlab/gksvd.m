@@ -1,17 +1,20 @@
-% function [ D, U, V ] = gksvd( A, tol )
+function [ D, U, V ] = gksvd( A, tol )
 % GKSVD computes the SVD of A
 % Given A MxM and tol, this computes U, V MxM orthogonal and D diagonal 
 % such that A=U(D+E)V', where two norm E is around unit roundoff x two norm A
 % note: will later extend this to M >= N
 
-% BIDIGHH computes bidiagonal B=U'AV using householder reflections
-[ B, U, V ] = bidighh( A );
+% reference: Golub, Van Loan; 3rd ed; ch. 8.6.2, alg. 8.6.2
+% $Id$
 
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols
 if M < N
     error( 'A must have M >= N' );
 end;
+
+% BIDIGHH computes bidiagonal B=U'AV using householder reflections
+[ B, U, V ] = bidighh( A );
 
 q = 0;
 while q < N
