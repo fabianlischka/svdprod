@@ -28,8 +28,8 @@ end
 
 N = 4;
 disp( sprintf( '\nTesting SYMQRSCHUR, all combinations of off-diagonal elements zero, %g x %g matrices', N, N )); 
-for k=0:(2^N-2)
-    Bits    = bitget( k, 1:N-1 );
+for Typ=0:(2^N-2)
+    Bits    = bitget( Typ, 1:N-1 );
     TS      = [ 1:N; Bits, 0 ]';
     TestMat = strids2l( TS );
     Ev      = eig( TestMat );
