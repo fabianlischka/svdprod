@@ -26,20 +26,30 @@
 \newcommand{\imag}{\ensuremath{i}}
 \newcommand{\sfrac}[2]{\ensuremath{{\scriptstyle\frac{\scriptstyle #1}{\scriptstyle #2}}}}% smaller fraction
 \newcommand{\hb}{\ensuremath{{\scriptstyle\frac{\scriptstyle 1}{\scriptstyle 2}}}}
-\newcommand{\vecijk}[4]{\ensuremath{{#1}_{#2},\ldots,{#1}_{#3},\ldots,{#1}_{#4}}}% erzeugt mit den Parametern x, i, j, k:% x_i,...,x_j,...,x_k\newcommand{\ddim}[3]{\ensuremath{\underset{\scriptscriptstyle #2\times #3}{\rule[-1ex]{0ex}{+1ex}#1}}}% erzeugt Dimensionsangabe (#2)x(#3) unter Parameter 1
+\newcommand{\vecijk}[4]{\ensuremath{{#1}_{#2},\ldots,{#1}_{#3},\ldots,{#1}_{#4}}}% erzeugt mit den Parametern x, i, j, k:% x_i,...,x_j,...,x_k
+\newcommand{\prodijk}[4]{\ensuremath{{#1}_{#2}\cdots{#1}_{#3}\cdots{#1}_{#4}}}% erzeugt mit den Parametern x, i, j, k:% x_i,...,x_j,...,x_k
+\newcommand{\ddim}[3]{\ensuremath{\underset{\scriptscriptstyle #2\times #3}{\rule[-1ex]{0ex}{+1ex}#1}}}% erzeugt Dimensionsangabe (#2)x(#3) unter Parameter 1
 \newcommand{\sei}[1]{\stackrel{!}{#1}}% "shall be" places a small exclamation sign over the parameter
 
 % manipulate section commands:
 % \newcommand{\newsection}[1]{\newpage\section{#1}}
- \newcommand{\newsection}[1]{\section{#1}}
+% \newcommand{\newsection}[1]{\section{#1}}
 % \renewcommand{\thesubsection}{\thesection (\alph{subsection})}
+
+\renewcommand{\j}[2]{\ensuremath{#1^{(#2)}}}	% in step j... use \j Q2, short for Q^{(2)}
+\newcommand{\jt}[2]{\ensuremath{#1^{(#2)*}}}	% in step j... transposed
+% note: overwrites \j, the j without dot
 
 \newcommand{\readcode}[3]
 {
-	\subsubsection{Listing \textbf{#1} #2}
+	\subsubsection{\emph{#1} #2}
 	\lstinputlisting[caption={[\textbf{#1} #2]\textbf{#1} #2 #3}, label={rc:#1}]{#1.m}
 }
 % input: name of m file (without .m), short caption, more info
+\newcommand{\readlog}[1]
+{
+	\lstinputlisting[language=Matlab, basicstyle=\footnotesize, numbers=none, frame=single, columns=flexible, captionpos = t, caption={Testing \textbf{#1.m}}, deletekeywords={norm}]{#1.log}
+}
 
 
 \MakeShortVerb{\$}
@@ -54,21 +64,32 @@
 
 \begin{document}
 
-\lstset{language=Matlab, basicstyle=\footnotesize, numbers=left, numberstyle=\tiny, stepnumber=5, frame=single, columns=flexible, captionpos = b}
+\lstset{language=Matlab, basicstyle=\footnotesize, numbers=left, numberstyle=\tiny, stepnumber=5, frame=single, columns=flexible, captionpos = b, breaklines=true}
+\lstset{deletekeywords={beta}}
 
 \maketitle
 %we use this for the cvs info in the date....
 \DeleteShortVerb{\$}
 \tableofcontents
-\lstlistoflistings
+%\lstlistoflistings
 
 
 % \setcounter{section}{3}
 \section{Introduction}
-We cite all, and \verb+foo+ bar. 
-\section{The normal SVD}
+The computation of the SVD of a matrix $A$ is often preceded by the reduction of $A$ to bidiagonal form $B = U_B^T A V_B$.  We consider the case that $A$ is a product of square matrices $A=A_K\cdots A_2 A_1$. The idea pursued here, as presented in \cite{587733}, is to compute the bidiagonal form of $A$ implicitly, without ever forming the product explicitly.
+
+The algorithm to compute the SVD of a matrix product has been implemented in MATLAB from scratch, and in this note all the basic building blocks to assemble the algorithm are described. 
+
+\section{The Normal SVD}
+
+The first thing to realize when computing the singular values of a matrix $A$ is that singular values are invariant with respect to arbitrary multiplications (from either or both sides) with orthogonal matrices.\footnote{The singular vectors can be recovered by multiplication with the same orthogonal matrices.} Hence, a reasonable first step in computing the SVD is the reduction of $A$ to much simpler form. In particular, using Householder reflections from left and from right, we can bring $A$ to bidiagonal form (main diagonal and one superdiagonal) $B = U_B^T A V_B$. We have then reduced the number of relevant elements from $N^2$ to $2N-1$! 
+
+The total flop count for this bidiagonalization is $16/3 N^3$ for square matrices, or $8/3 N^3$ if $U,V$ are not explicitly formed.
+
+Then, in a second step $B$ will be iteratively decomposed into $B=U_\Sigma\Sigma V_\Sigma^T$, using Golub-Kahan SVD steps, which apply the QR algorithm implicitly to the symmetric tridiagonal matrix $T=B^TB$. Therefore, we next describe the QR algorithm for the symmetric eigenvalue problem. The SVD of $A$ is finally given by $(U_BU_\Sigma)^T A V_B V_\Sigma = \Sigma$.
 
 \subsection{Bidiagonalization}
+Given $A \in\R^{M\times N}$, we seek orthogonal $U_B, V_B$ and bidiagonal $B$ such that $B = U_B^T A V_B$. To achieve this, we apply a series of Householder reflections alternating from left and right.
 
 \subsubsection{Householder Reflections}
 Householder reflectors are orthogonal and symmetric matrices\footnote{This implies that they are their own inverse.} that can be used to reflect a vector onto the first coordinate axis (and hence eliminate all vector entries but the first). The construction is simple with a few subtleties in the implementation. Conceptually, we modify a projector. As is well known, a projector $P =\sfrac{\ve v\ve v^T}{\ve v^T\ve v}$ projects a vector onto the line spanned by $\ve v$, while $P^\bot = I - \sfrac{\ve v\ve v^T}{\ve v^T\ve v}$ projects $\ve v$ onto the hyperplane orthogonal to $\ve v$. Now, if we extend the perpendicular line beyond that hyperplane, we obtain the reflection $H = I - 2\sfrac{\ve v\ve v^T}{\ve v^T\ve v}$. For a given vector $\ve x$, we now aim to find $\ve v$ such that $H\ve x=\tnorm x\ve e_1$. This is easily done, the vector \ve v we choose is just $\ve x -\tnorm x \ve e_1$. Then, reflecting \ve x across the hyperplane orthogonal to \ve v will bring it onto $\ve e_1$.
@@ -78,50 +99,71 @@ Alternatively, compute $x_1 - \tnorm x$ using $x_1 - \tnorm x = \frac{x_1^2 - \t
 
 To facilitate computation and storage, we can norm \ve v to have $v_1=1$, and compute $\beta = \frac 2{\ve v^T \ve v}$, so that $H = I - \beta \ve v \ve v^T$.
 
-The flop count of determining the Household vector \ve v is around $3N$. An implementation is on page \pageref{rc:house}.
+The flop count of determining the Household vector \ve v is around $3N$. An implementation in Matlab can be found on page \pageref{rc:house}.
 
-\subsection{The QR algorithm for the symmetric Eigenvalue problem}
+\subsubsection{Computing the Bidiagonalization}
+We can now proceed to bring $A$ into bidiagonal form like this: First, multiply $A$ with $U_1$ from left, eliminating the column below $A_{11}$. Then, multiply $A(1:M,2:N)$ with $V_1$ from the right, eliminating the first row beyond $A_{12}$. Then, $A(2:M,2:N)$ with $U_2$ from left, eliminating the column below $A_{22}$. Then, $A(2:M,3:N)$ with $V_2$ from the right, eliminating the first row beyond $A_{23}$. After $N-2$ double steps like this, everything below $A_{N-2,N-2}$ and beyond $A_{N-2,N-1}$ is eliminated, we can now apply one more $U_{N-1}$ from the left to eliminate the column below $A_{N_1,N-1}$, and if $M>N$, apply one last step $U_N$ from the left to erase the remaining last column below the square.
 
-Given $A$ symmetric, real, we compute $T=Q^T AQ$ tridiagonal and similar to A, using Householder tridiagonalization. Now we perform $QR$ steps:
+In total, we have $2N-2$ householder multiplications working on progressively smaller submatrices, for a total flopcount (without explicitly accumulating $U$ and $V$) of $4N^2(M-N/3)$, that is $8/3N^3$ for square matrices. Accumulating $U$ and $V$ costs $4(M^2N-N^2M+N^3/3)$ and $4N^3/3$ flops, respectively, and hence doubles the workload for square matrices.
+
+An implementation can be found on page \pageref{rc:bidighh}.
+
+Note that there is an alternative algorithm that is faster for $M\gg N$. It first computes a QR-decomposition of $A$, and then bidiagonalizes the square matrix $R$, for a flop count of $2MN^2+2N^3$, so theoretically cheaper for $M\ge 5/3\,N$. We will not pursue this algorithm here.
+
+\subsection{The QR Algorithm for the Symmetric Eigenvalue Problem}
+
+Given $A$ symmetric, real, we compute $T=Q^T AQ$ tridiagonal and similar to A, using Householder tridiagonalization. Now we perform $QR$ steps on $T$:
 \begin{align*}
 QR&=T  \\
 (\text{so }  R &= Q^T T)\\
-T^+ &= RQ = Q^T TQ
+T_+ &= RQ = Q^T TQ
 \end{align*}
 or, with shift $\mu$,
 \begin{align*}
 QR&=T - \mu I \\ 
 (\text{so }  &R  = Q^T T - \mu Q^T)\\
-T^+ &= RQ + \mu I = Q^T TQ
+T_+ &= RQ + \mu I = Q^T TQ
 \end{align*}
-We either perform these steps explicitly, or, appealing to the implicit-Q theorem, implicitly.
+We either perform these steps explicitly, or, appealing to the implicit-Q theorem, implicitly. From the equations above it is apparent that $T_+$ is similar to $T$ and hence has the same characteristic polynomial, hence eigenvalues.\footnote{The explanation why the algorithm converges is wide beyond the scope of this note. However, one can intuitively regard the QR algorithm as a power iteration performed with many vectors simultaneously that are coerced to remain orthogonal. Hence, one sees that the eigenvector corresponding to the largest eigenvalue will emerge, and the neighbouring vector (being orthogonal) will converge to the eigenvector associated with the second largest eigenvalue, etc. And given that, keeping in mind the Rayleigh quotient, it is apparent why the diagonal elements converge to the eigenvalues, while the off diagonals go to zero.}
+
+\subsubsection{Tridiagonalization}
+Tridiagonalization of a symmetric matrix $A$ proceeds similar as bidiagonalization above. However, here we apply the same transformation on the left and right, since we aim to preserve not only singular values, but eigenvalues (hence we can achieve only upper Hessenberg form, or tridiagonal form in the symmetric case).
+
+An optimal implementation requires $4/3\,N^3$ flops without, and twice that, $8/3\,N^3$ flops with accumulating $Q$. However, the implementation on page \pageref{rc:symtridhh} requires somewhat more, as it does not exploit symmetry in $A$ when performing the rank-one-update, thus operating on the whole square, instead of only a triangle.
+
 \subsubsection{Explicit QR with Shift}
-When computing an iteration as above, $T$ being tridiagonal allows for a cheaper QR decomposition using Givens rotations (and the essential uniqueness of the QR decomposition), as shown on page \pageref{ml:qrsymtrid}. The essential thing to see is that we can use (orthogonal!) Givens rotations from the left to eliminate the subdiagonal elements of $T$, and obtain an uppertriangular matrix $R$, hence we have $R = G_{N-1}^T\ldots G_2^T G_1^T T$, so $QR=T$ with $Q=G_1 G_2\ldots G_{N-1}$. 
+When computing an iteration as above, $T$ being tridiagonal allows for a cheaper QR decomposition using Givens rotations (and the essential uniqueness of the QR decomposition), as shown on page \pageref{rc:qrsymtrid}. We can use (orthogonal!) Givens rotations from the left to eliminate the subdiagonal elements of $T$, and obtain an uppertriangular matrix $R$, hence we have $R = G_{N-1}^T\ldots G_2^T G_1^T T$, so $QR=T$ with $Q=G_1 G_2\ldots G_{N-1}$. 
 
-Remarkably, the total flop count for computing $R$ alone is linear, around $25N$, but accumulating $Q$ requires around $3N^2$ flops - still an improvement over the cubic order of full QR.
+Remarkably, the total flop count for computing $R$ alone is linear, around $25N$, but accumulating $Q$ requires around $3N^2$ flops - still a vast improvement over the cubic order of full QR ($4/3/, N^3$ without $Q$, $8/3/, N^3$ with $Q$).
 
-
+A simple listing for an explicit QR step can be found on page \pageref{rc:qrimstep}, the QR decomposition for symmetric tridiagonal matrices is on page \pageref{rc:qrsymtrid}.
 
 \subsubsection{Implicit QR with Shift}
-By the implicit Q theorem, we know that for symmetric real $A$ the transformation to tridiagonal $T = Q^T A Q$ is essentially unique (modulo signs), \emph{given the first column $\ve q_1$ of $Q$}. Now, in the case above, we seek $T^+ = RQ + \mu I = Q^T TQ$, and find it explicitly computing the required $Q$. However, by the implicit Q theorem, if we find \emph{any} orthogonal $G$ such that $G^T T G$ is tridiagonal, and the first column of $G$ is "correct", we know that we have actually found the "correct" $Q$, so we do not need to bother about the QR decomposition. Two questions remain: What is the "correct" first column of $G$? And how do we find the rest of $G$?
+By the implicit Q theorem, we know that for symmetric real $A$ the transformation to tridiagonal $T = Q^T A Q$ is essentially unique (modulo signs), \emph{given the first column $\ve q_1$ of $Q$}. Now, in the case above, we seek $T_+ = RQ + \mu I = Q^T TQ$, and find it by explicitly computing the required $Q$. However, by the implicit Q theorem, if we find \emph{any} orthogonal $G$ such that $G^T T G$ is tridiagonal, and the first column of $G$ is "correct", we know that we have actually found the "correct" $Q=G$ (modulo signs), so we do not need to bother about the QR decomposition. Two questions remain: What is the "correct" first column of $G$? And how do we find the rest of $G$?
 
 \emph{Finding the correct first column}
 
-For the "correct" $G$, we require $GR=T - \mu I$ for some upper triangular $R$, in other words, the first column of $G$ is just a scaled version of the first column on the RHS, that is 
+For the "correct" $G$, we require $GR=T - \mu I$ for some upper triangular $R$, in other words, the first column of $G$ is just a scaled version of the first column on the RHS $T - \mu I$, that is 
 \begin{equation*}
 	\ve g_1 = \frac{\ve t_1 - \mu \ve e_1}{\tnorm{\ve t_1 - \mu \ve e_1}}.
 \end{equation*}
+So, at the danger of multiple redundant repetition, if we find $G$ with this first column such that $G$ orthogonal and $G^TTG$ tridiagonal, we are done.
 
 \emph{Finding the rest of $G$}
 
 Suppose now that we compose all of $G$ as a series of Givens rotations, that is $G = G_1 G_2\ldots G_{N_1}$ with $G_k$ acting (only) on $k$ and $k+1$ - both rows and columns, of course, since we will multiply from both sides. Then
-\begin{align*}	T^+ &= G_{N-1}^T\ldots G_2^T G_1^T     T      G_1 G_2 \ldots G_{N-1} \\
+\begin{align*}	T_+ &= G_{N-1}^T\ldots G_2^T G_1^T     T      G_1 G_2 \ldots G_{N-1} \\
 	G &= G_1 G_2 \ldots G_{N-1}\end{align*}
 
-Consider the first column of $G$ - it will be determined exclusively by $G_1$. Hence, we can choose the rotation matrix $G_1$ such that its first column is parallel to the first column of $T-\mu I$, as explicated above. What effect will that have on the intermediate $T_1 = G_1^T     T      G_1$? It will fill out two elements outside the sub/superdiagonals, namely $t_{13}$ and $t_{31}$ - the famous "bulge". 
-But, note that we can eliminate these elements by judicious choice of $G_2$! Then they will reappear, one element further down --- at position $t_{24}$ and $t_{42}$ --- and can be chased down with further Givens rotations. After all $N-1$ rotations, we end up with a tridiagonal $T^+ = G^TTG$, $G$ orthogonal, and $G_1$ chosen such that $\ve g_1$ parallel to $T-\mu \ve e_1$, as required - hence, by the implicit Q theorem, we have found "the same" $T^+$ as if we had used the explicit QR step (note that the signs of the off-diagonal elements might differ somewhat, by they would have depended on the particular choice of $Q$ (ie the signs of the diagonal of $R$) anyway). 
+Consider the first column of $G$ - it will be determined exclusively by $G_1$. Hence, we can choose the rotation matrix $G_1$ such that its first column is parallel to the first column of $T-\mu I$, as explicated above. What effect will that have on the intermediate $T_1 = G_1^T     T      G_1$? It will fill out two elements outside the sub/superdiagonals, namely $t_{13}$ and $t_{31}$ - the famous "bulge".
 
-\subsubsection{Finding the correct shift}
+But, note that we can eliminate these elements by judicious choice of $G_2$! Then they will reappear, one element further down --- at position $t_{24}$ and $t_{42}$ --- and can be chased down with further Givens rotations. After all $N-1$ rotations, we end up with a tridiagonal $T_+ = G^TTG$, $G$ orthogonal, and $G_1$ chosen such that $\ve g_1$ parallel to $T-\mu \ve e_1$, as required - hence, by the implicit Q theorem, we have found "the same" $T_+$ as if we had used the explicit QR step (note that the signs of the off-diagonal elements might differ somewhat, by they would have depended on the particular choice of $Q$ (ie the signs of the diagonal of $R$) anyway). 
+
+The flop count for an implicit symmetric QR step is about $32N$ without accumulating $Q$, and if $Q$ has $M\ge N$ rows (if it is passed in from the outside to be updated, for example), about $6MN$ for accumulating $Q$. 
+
+An implementation of the implicit QR step can be found on page \pageref{rc:qrimstep}.
+
+\subsubsection{Finding the Correct Shift}
 One reasonable choice for the shift is $mu=T_{nn}$. However, Wilkinson gives heuristic reasons why to prefer the eigenvalue of 
 \[
 	T(n-1:n,n-1:n) = \bmat a_{n-1} & b_{n-1} \\ b_{n-1} & a_n \emat
@@ -139,13 +181,132 @@ where $d=(a_{n-1}-a_n)/2$. To avoid cancellation, use
 \[
 	\lambda_{n} = a_n - \frac{ b_{n-1}^2}{d + \sign d \sqrt{b_{n-1}^2 + d^2}}.
 \]
-For $d=0$, the eigenvalues are given by 	$\lambda_{\pm} = a_n \pm | b_{n-1}|$. To avoid cancellation, we use the one that is absolutely greater.
+For $d=0$, the eigenvalues are given by 	$\lambda_{\pm} = a_n \pm | b_{n-1}|$. To avoid cancellation, we use the one that is absolutely greater. The flop count for determining $mu$ is around 15 and a square root, an implementation is on page \pageref{rc:wilkinsonshift}.
 
-\section{Listings}
-\subsection{QR decomposition}
+\subsection{The Complete Symmetric QR Algorithm}
+The whole algorithm then proceeds as follows:
+\begin{enumerate}\item Compute tridiagonal $T=Q^TAQ$
+\item Set negligible off-diagonal elements to zero
+\item Determine a submatrix $T_2$ of $T$ such that $T_2$ unreduced, and $T$ diagonal below $T_2$
+\item Apply an implicit QR step on $T_2$, update $Q$ if desired
+\item Repeat from step 2. until $T$ diagonal \end{enumerate}
 
+The flop count is about $4/3\, N^3$ without accumulating $Q$, and $9N^3$ with accumulating $Q$. For details, we refer to \cite[section 8.2]{GolL96}. An implementation is on page \pageref{rc:symqrschur}.
+
+\subsection{The Relation Between SVD and the Symmetric Eigenvalue Problem}
+For $A\in\R^{M\times N}$, the singular values of $A$ are equal to the square roots of the eigenvalues of $A^TA$, since with
+\begin{align*}
+	A &= U\Sigma V^T, \\
+	A^TA &= V\Sigma U^T\,U\Sigma V^T = V\Sigma^2 V^T.
+\end{align*}
+Note that $A^TA$ is symmetric, so one could compute it, and then apply the symmetric QR algorithm from the last section to find its eigenvalues. However, explicitly computing $A^TA$ leads to a squaring of the condition number, and a subsequent loss of information (even if $A^TA$ is not necessary for computing $U$).
+
+\subsubsection{The Golub-Kahan SVD Step}
+A better way is to apply the QR steps implicitly. To do this, we proceed as follows:
+First, determine bidiagonal $B = U_B^T A V_B$. Then $T=B^TB$ is tridiagonal, symmetric. The implicit QR step would now compute $mu$ from the bottom $2\times 2$ submatrix of $T$, and then find $T_+ =  Q^T TQ$ such that $QR=T - \mu I$. Similarly, we seek a new bidiagonal $B$, $B_+ = U^TBV$. Then $T_+=B_+^TB_+=V^TB^TUU^TBV=V^TB^TBV=V^TTV$.
+Again, we can now invoke the implicit-Q theorem:
+
+If we find orthogonal $U, V$ with
+\begin{enumerate}\item $T_+=V^TTV$ is tridiagonal---or, sufficiently: $B_+ = U^TBV$ is bidiagonal
+\item First column of $V$ is proportional to first column of $T-\mu I$,
+\end{enumerate}
+then we have our next $B_+$ and hence also $T_+$, without ever explicitly computing $T$ or $T_+$.
+
+These steps are known as Golub-Kahan SVD steps \cite[section 8.6.2]{GolL96}. If we terminate this second part of the algorithm with $\Sigma=U_\Sigma B V_\Sigma$, then our SVD of $A$ is given by 
+$(U_BU_\Sigma)^T A V_B V_\Sigma = \Sigma$.
+
+\subsubsection{The Complete SVD Algorithm}
+The whole algorithm then schematically proceeds as follows:
+\begin{enumerate}\item Compute bidiagonal $B = U_B^T A V_B$
+\item Set negligible off-diagonal elements to zero
+\item Determine a submatrix $B_2$ of $B$ such that $B_2$ unreduced, and $B$ diagonal below $B_2$
+\item Apply an Golub-Kahan SVD step on $T_2$, and update $U, V$ if desired
+\item Repeat from step 2. until $B$ diagonal \end{enumerate}
+
+The total flop count for a Golub-Kahan SVD of a square matrix is about $8/3\, N^3$ if $U, V$ are not desired, and $21 N^3$ if they are.
+
+An implementation of the Golub-Kahan SVD (also known as Golub-Reinsch) SVD can be found on page \pageref{rc:gksvd}. While it is certainly not production quality (cancellations are mostly avoided, but overflow is not guarded against), it appears to deliver comparable accuracy on a range of test matrices to the MATLAB implementation svd(). 
+
+As the algorithm is structured here, it shows very nicely the separation of the first step, computing the bidiagonalization of $A$, and the second, iteratively diagonalizing $B$. This structure will now be exploited for the computation of the SVD of a product of square matrices.
+
+\section{The SVD for a Matrix Product}
+We now consider the SVD for products $A=\prodijk AKk1$. The crucial idea is that instead of computing the product, and then bidiagonalize and proceed to find the SVD, we will implicitly bidiagonalize it, that is find the bidiagonal form of the product without ever explicitly computing the product. Once the bidiagonal form is computed, we can use any desired technique to find the SVD from there.
+
+\subsection{Bidiagonalizing a Matrix Product} 
+We aim to find orthogonal $U, V$ such that $U_B^TAV_B=B$ is bidiagonal, and without reference to the actual product $A$. We note that we can intersperse the decomposed identity $I=QQ^T$ between the $A_k$, such that $B=U_B^TAV_B=U_B A_K Q_K Q_K^T A_{K_1} \cdots Q_2^T A_2 Q_1 Q_1^T A_1 V_B$. How can we choose these intermediate matrices? Well, by choosing $Q_1$ judiciously, we can make $Q_1^T A_1$ tridiagonal. Then we can choose $Q_2$ as to make $Q_2^T A_2 Q_1$ tridiagonal, and so on, up to a choice of $U_B$ as to make $U_B^T A_K Q_K$ tridiagonal. 
+
+However, then all $U_B^T A_K Q_K, \ldots, Q_2^T A_2 Q_1, Q_1^T A_1 Q_0$ are tridiagonal, hence their product, and then we can choose (intermediate) rotations from the right such as to make the whole product bidiagonal.
+
+Having run through the iteration as described below in more detail, we can then compute $B$---it depends only on the diagonal and superdiagonal of all the tridiagonal matrices formed above. In particular, suppose we have the diagonal \ve q and superdiagonal \ve e of the product of all tridiagonal matrices $T$ to the right of matrix $k$, then we can obtain \ve q and \ve e of the product up to and including $T_k$ through this nice recurrence:
+\begin{lstlisting}
+	d = diag( T_k );
+	e = e .* d(1:N-1) + q(2:N) .* diag( T_k, 1 );
+	q = q .* d;
+\end{lstlisting}
+
+\subsubsection{Implementation}
+For implementation purposes and to define notation, we note down a few invariances. The indices are $k=1,\ldots,K$ for the matrices, $i=1,\ldots,N$ for the rows, similarly $j$ for columns, and $t=0,1\ldots,N$ for (time) steps. Initial values are designated e.g. $\j A0_k$, after the first step of the algorithm we would have $\j A1_k$, etc.
+
+\begin{align*}
+	\j Q0_K 	&= I 	\\
+	\j Q1_0 	&= I	\\
+	\j At_k 	&= \jt Qt_k \cdots \jt Q2_k \jt Q1_k \j A0_k \j Q1_{k-1} \cdots \j Qt_{k-1} \\
+	\j Ut		&= \j Q1_K \cdots \j Qt_K \\
+	\j Vt		&= \j Q1_0 \cdots \j Qt_0 \\
+	\j A0_K \cdots \j A0_1 &= A \\
+	\j At_K \cdots \j At_1 &= \jt Qt_K \cdots \jt Q1_K \j A0_K\j A0_{K-1}\cdots\j A0_2\cdot \j A0_1 \j Q1_{k-1} \cdots \j Qt_{k-1} \\
+					&= \jt Ut A \j Vt
+\end{align*}
+
+Now, all $\j Qt_k$ are Householder reflections, hence orthogonal and symmetric. Hence, all \j Ut and \j Vt are orthogonal. Furthermore, we will choose the $\j Qt_k$ such that all $\j At_k$ are upper triangular up to (and including) column $t$, in other words, the elements below $a_{11}, a_{22}, \ldots, a_{tt}$ are zero.
+
+Then, the product $\j At_K \cdots \j At_1$ of these matrices is also upper triangular up to (and including) column $t$, so in particular, $\jt Ut A \j Vt$ is upper triangular. Last but not least, $\j Q{t+1}_0$ will be chosen such that $\jt Ut A \j V{t+1}$ is bidiagonal up to and including column $t$, that is all elements to the right of $a_{12}, a_{23}, \ldots, a_{tt+1}$ are zero.
+
+A complete implementation is on page \pageref{rc:bidigprod}.
+
+\section{Testing}
+All algorithms were tested with respect to internal consistency (that is, are matrices that are supposed to be orthogonal really orthogonal? When the algorithm computes a decomposition, does the composition of the returned matrices recover the original matrix?), as well as by comparison to the reference solutions computed by MATLAB. 
+
+The test matrices were generated with \emph{gentestmat}, page \pageref{rc:gentestmat}. They include totally random matrices, as well as matrices designed to have a very large dynamical range of singular values, and matrices that are badly conditioned - either singular or very close to singular. In addition, for the QR algorithm and the GK SVD algorithm, we also construct bi- or tridiagonal matrices with a certain pattern of zeros and non-zeros on the superdiagonal, and iterate through all possible combinations, in order to verify correct decomposition into diagonal and unreduced matrices when deflating the problem.
+
+This facilitated finding certain bugs. For example, if the '$\le$' in line 21 in algorithm \emph{gksvdsteps} on page \pageref{rc:gksvdsteps} is replaced by a '$<$', the algorithm runs into an infinite loop in certain cases (namely if the surrounding off-diagonal elements are (or have been set to) zero).\footnote{Of course, careful reading of \cite[page 455]{GolL96} would have prevented this in the first place...}
+
+\appendix
+\section{Source Code}
+
+\subsection{Bidiagonalization}
 \readcode{house}{finds the Householder vector}{}
+\readcode{symtridhh}{reduces a symmetric matric to tridiagonal form}{using Householder reflections, preserving eigenvalues}
+\readcode{bidighh}{reduces a matrix to bidiagonal form}{using Householder reflections, preserving singular values}
+\readcode{bidigprod}{bidiagonalizes a matrix product implicitly}{using Householder reflections}
 
+\subsection{The QR algorithm}
+\readcode{wilkinsonshift}{determines the Wilkinson shift}{}
+\readcode{givens}{determines a Givens rotation}{to eliminate an element}
+\readcode{qrsymtrid}{determines the QR decomposition}{for symmetric tridiagonal matrices}
+\readcode{qrexstep}{executes an explicit QR step}{with Wilkinson shift}
+\readcode{qrimstep}{executes an implicit QR step}{with Wilkinson shift}
+\readcode{symqrschur}{computes the Eigen decomposition}{for symmetric matrices, using implicit QR steps}
+
+\subsection{The SVD}
+\readcode{gksvdstep}{executes a Golub-Kahan SVD step}{}
+\readcode{gksvdsteps}{computes the SVD of a bidiagonal matrix}{using Golub-Kahan SVD steps}
+\readcode{gksvd}{computes the SVD}{using bidiagonalization and Golub-Kahan SVD steps}
+\readcode{gksvdprod}{computes the SVD of a matrix product}{using implicit bidiagonalization and Golub-Kahan SVD steps}
+
+\subsection{Test Routines}
+\readcode{gentestmat}{generates test matrices}{}
+\readcode{testbidighh}{tests bidiagonalization}{}
+\readcode{testsymqrschur}{tests symmetric Schur decomposition}{}
+\readcode{testgksvd}{tests the Golub-Kahan SVD}{}
+\readcode{testgksvdprod}{tests the SVD of a matrix product}{}
+
+\section{Test Results}
+\readlog{bidighh}
+\readlog{symtridhh}
+\readlog{symqrschur}
+\readlog{gksvd}
+\readlog{gksvdprod}
 
 \nocite{*}
 
