@@ -33,6 +33,8 @@ for k = 1:(K-1)
         
         R(k,k) = mu;                            % = norm(x)
         R(k:K,(k+1):K) = R(k:K,(k+1):K) - betas( k ) * v * v' * R(k:K,(k+1):K);
+        % (note: if we computed (v*v')*R, we would neet 2MN^2 flops, but
+        % with v*(v'*R) we only need 4NM!!)
         % collect Qi
         R((k+1):K,k) = v(2:end);
 	end;
