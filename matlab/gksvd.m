@@ -55,8 +55,8 @@ while q < N
         if abs( B( k, 1 ) ) <= eps * norm( B, 'inf' )
             % now, B( k, 1 ) == 0, p+1 <= k <= N-q, B(N-q,2) == 0 (note:
             % even if q == 0, by the format we have chosen)
-            disp('rotating empty diagonal away')
             if k < N-q
+                disp('rotating empty diagonal away to the right')
                 % to do: if k<N-q, rotate that row away with Givens rotations from
                 % left, G(k,j), j=k+1:N-q
                 bulge = B(k,2);
@@ -66,23 +66,33 @@ while q < N
                     % need to transpose (since mult from left), and 
                     % transpose again, since need to eliminate upper
                     % element
-                    G     = [ c s; -s c ]; 
                     % rotate B from left: B+ = G B,  G=G(k,j)
                     % zerod =  c * bulge + s * B(j,1)
-                    B(j,1)= -s * bulge + c * B(j,1);
-                    bulge =  s * B(j,2);
-                    B(j,2)=  c * B(j,2);                    
+                    B(j,1)  = -s * bulge + c * B(j,1);
+                    bulge   =  s * B(j,2);
+                    B(j,2)  =  c * B(j,2);                    
                     % rotate U from right (since transposed): U+ = U G'
+                    G       = [ c s; -s c ]; 
                     U(:,[k j]) = U(:,[k j]) * G';       % flops: 6*M
                 end % for j
             else % k==N-q
+                disp('rotating empty diagonal away UPWAYS')
                 % if k==N-q, then apply Givens from the 
                 % right, G(k,j), j=N-q-1:-1:p+1
+                bulge = B(N-q-1,2);
+                B(N-q-1,2)= 0;
                 for j=N-q-1:-1:p+1
-                    err;
-                    [ c s ] = givens( 1,2 );
-                    rotate B from right
-                    rotate V from right
+                    % rotate B from right, B+ = B G;  G=G(k,j)
+                    [ c s]  = givens( B(j,1), bulge );
+                    % zerod   = s * B(j,1) + c * bulge
+                    B(j,1)  = c * B(j,1) - s * bulge;
+                    if j>p+1
+                        bulge   = s * B(j-1,2);
+                        B(j-1,2)= c * B(j-1,2);
+                    end;
+                    % rotate V from right
+                    G       = [ c s; -s c ]; 
+                    V(:,[k j]) = V(:,[k j]) * G;       % flops: 6*M
                 end
             end % if k
         else    % no element on the diagonal is zero
