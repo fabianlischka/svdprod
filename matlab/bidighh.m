@@ -15,15 +15,15 @@ if M < N
 end;
 
 B       = A;              % B will be M x N
-betas   = zeros( N-1, 1 );
+betas   = zeros( N, 1 );
 gammas  = zeros( N-2, 1 );
 
-for k = 1:N-1
-    % determine HH reflector for column A(k:N,k)
+for k = 1:N
+    % determine HH reflector for column B(k:M,k)
     [ v, beta, mu ] = house( B(k:M,k) );            % flops: 3(M-k) 
     betas( k )      = beta;
-    B(k,k)          = mu;                           % = norm(x)
-    B(k:M,(k+1):N)  = B(k:M,(k+1):N) - beta * v * v' * B(k:M,(k+1):N);
+    % B(k,k)          = mu;                           % = norm(x)
+    B(k:M,k:N)      = B(k:M,k:N) - beta * v * v' * B(k:M,k:N);
                                                     % flops: 4*(N-k)*(M-k)
     B((k+1):M,k)    = v(2:end);
     % or, if you don't want to collect it, B((k+1):M,k) = 0;
@@ -31,9 +31,9 @@ for k = 1:N-1
     if k < N - 1
 		[ v, beta, mu ] = house( B(k,(k+1):N)' );   % flops: 3(N-k)
 		gammas( k )     = beta;
-		B(k,k+1)        = mu;                        % = norm(x)
+		% B(k,k+1)        = mu;                        % = norm(x)
         % note that we need to multiply from the right here:
-		B((k+1):M,(k+1):N)  = B((k+1):M,(k+1):N) - beta * B((k+1):M,(k+1):N) * v * v';
+		B(k:M,(k+1):N)  = B(k:M,(k+1):N) - beta * B(k:M,(k+1):N) * v * v';
                                                     % flops: 4*(N-k)*(M-k)
 		B(k,(k+2):N)    = v(2:end)';
         % or, if you don't want to collect it, B(k,(k+2):N) = 0;
@@ -50,7 +50,7 @@ if nargout > 1
     % compute U and V
     v = zeros( M, 1 );
     U = eye( M );
-    for k = (N-1):-1:1
+    for k = N:-1:1
         % HH reflector now: I - beta * v * v'. Note: v(1) = 1
         v(k)        = 1;
         v(k+1:M)    = B((k+1):M,k);
@@ -58,13 +58,13 @@ if nargout > 1
         B(k+1:M,k)  = 0;
     end;
     V = eye( N );
-    for k = (N-1):-1:2
+    for k = N-1:-1:2
         v(k)        = 1;
         v(k+1:N)    = B(k-1,(k+1):N)';
         V(k:N,k:N)  = V(k:N,k:N) - gammas( k-1 ) * v(k:N) * v(k:N)' * V(k:N,k:N);
         B(k-1,k+1:N)= 0;
     end;
-    V( 1, 1 ) = sign( U(:,1)'*A(:,1) ) * sign( B(1,1) );
+    % V( 1, 1 ) = sign( U(:,1)'*A(:,1) ) * sign( B(1,1) );
 else
     B = [ diag(B) [ diag(B,1); 0 ] ];
 end;
