@@ -67,5 +67,7 @@ for k=1:K
     q   = q .* d;
 end;
 
-U = A(:,:,K+1);
+if computevectors 
+    U = A(:,:,K+1);
+end;
 B = [ q [e; 0] ];
