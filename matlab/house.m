@@ -10,7 +10,7 @@ function [ v, beta, mu ] = house( x )
 sigma = x(2:end)'*x(2:end);                          % flops: 2N
 v     = x;                                           % mem copy: N
 v(1)  = 1;  % for the case sigma == 0
-if sigma == 0
+if isempty( sigma ) | sigma == 0
     beta = 0;
     mu = abs( x(1) );   % == norm( x );
 else    % note: here, we always choose v = x - norm(x) * e1, ie v(1) always < 0, and Fx(1)>0
