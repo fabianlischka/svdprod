@@ -9,9 +9,9 @@ end;
 tol = 1e-10;
 
 fprintf( fid,  '\n\nTEST SYMQRSCHUR\n' );
-fprintf( fid,  'We compute eigenvalues of a test matrix using eig(), and then using the schur decomposition\n' );
-fprintf( fid,  'computed by symqrschur, and display the norm of the difference of the vector of eigenvalues\n' );
-fprintf( fid,  'relative to the norm of the vector of eigenvalues itself. Also the norm of A-QDQ'', and Q''Q-I.\n' );
+fprintf( fid,  'We compute eigenvalues of a test matrix using eig(),and then using\n the Schur decomposition' );
+fprintf( fid,  'computed by symqrschur, and display the norm\nof the difference of the vector of eigenvalues' );
+fprintf( fid,  'relative to the norm of the\nvector of eigenvalues itself. Also the norm of A-QDQ'', and Q''Q-I.\n' );
 fprintf( fid,  'All errors should be around 1e-15.\n' );
 for N=5:25:55
     fprintf( fid,  '\nTesting SYMQRSCHUR with various (symmetrized) %g x %g matrices\n', N, N ); 

@@ -8,10 +8,10 @@ else
 end;
 tol = 1e-10;
 
-fprintf( fid,  '\n\nTEST GKSVD\n' );
-fprintf( fid,  'We compute singular values of a test matrix using svd(), and then using our implementation of\n' );
-fprintf( fid,  'the Golub-Kahan SVD alg, and display the norm of the difference, relative to the norm of the svs.\n' );
-fprintf( fid,  'We also test the norm of A-UDV'', and the orthogonality, via norm U''U-I and V''V-I.\n' );
+fprintf( fid,  'TEST GKSVD\n' );
+fprintf( fid,  'We compute singular values of a test matrix using the MATLAB svd(),\nand then using our implementation of' );
+fprintf( fid,  'the Golub-Kahan SVD algorithm,\nand display the norm of the difference, relative to the norm of the svs.\n' );
+fprintf( fid,  'We also test the norm of the residual A-UDV'', and\nthe orthogonality of U and V, namely norm U''U-I and V''V-I.\n' );
 fprintf( fid,  'All errors should be around 1e-15.\n' );
 for M=5:21:68
     N=min(30,M);

@@ -8,11 +8,11 @@ else
 end;
 
 tol = 1e-10;
-fprintf( fid,  '\n\nTEST SYMTRIDHH\n' );
-fprintf( fid,  'We generate symmetrized testmatrices A, and compute tridiag T = Q''AQ, with Q orthogonal.\n' );
-fprintf( fid,  'We then compute evals of A and T, and display the norm of the difference (relative to the\n' );
-fprintf( fid,  'norm of the evals itself). We also consider the norm of redidual A-QTQ'', and check\n' );
-fprintf( fid,  'orthogonality, norm of Q''Q-I. All errors should be around 1e-15.\n' );
+fprintf( fid,  'TEST SYMTRIDHH\n' );
+fprintf( fid,  'We generate symmetrized testmatrices A, and compute tridiag T = Q''AQ,\nwith Q orthogonal. ' );
+fprintf( fid,  'We then compute evals of A and T, and display\nthe norm of the difference (relative to the' );
+fprintf( fid,  'norm of the evals itself).\nWe also consider the norm of redidual A-QTQ'', and check\n' );
+fprintf( fid,  'orthogonality, namely the norm of Q''Q-I.\nAll errors should be around 1e-15.\n' );
 for N=3:37:77
     fprintf( fid,  '\nTesting SYMTRIDHH with various (symmetrized) %g x %g matrices\n', N, N );
     fprintf( fid,  'Type:   Eig 2-norm        RelRes          Orth\n' );

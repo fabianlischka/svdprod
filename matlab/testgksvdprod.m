@@ -10,7 +10,7 @@ else
 end;
 tol = 1e-10;
 
-fprintf( fid,  '\n\nTEST GKSVDPROD\n' );
+fprintf( fid,  'TEST GKSVDPROD\n' );
 
 if 0 % generate detailed error data
 Layer = 1;
@@ -35,7 +35,7 @@ end
 end
 
 K = 4;
-for M=5:21:47
+for M=5:21:47 % 47
     fprintf( fid,  '\nTesting GKSVDPROD with various %g x %g matrices\n', M, M ); 
     fprintf( fid,  'Prod of types:   SVs 2-norm        RelRes        U Orth        V Orth\n' );
     TestMats = zeros(M,M,14);
