@@ -19,13 +19,14 @@ for k = 1:N
     v  = R(k:M,k);
     x1 = v(1);
     sigma = v(2:end)'*v(2:end);
-    if sigma == 0
+    if isempty( sigma ) || sigma == 0
         R(k,k) = x1;  % = norm(x). No need to update rest of matrix (or betas), since beta = 0
         % NOTE: used to be abs(x1) = norm(x), but now reverted to x1. Why?
         % because if we flip sign here to maintain positive diagonal on R,
         % we would need to flip sign in Q, but there is no way to store
         % that informaion! (since beta = 0...)
-        R((k+1):N,k) = 0;
+        % collect Qi: v is zero
+        R((k+1):M,k) = 0;
 	else    % note: here, we always choose v = x - norm(x) * e1, ie v(1) always < 0
         mu = sqrt( x1^2 + sigma );  % = norm( x )
         if x1 <= 0
