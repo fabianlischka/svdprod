@@ -6,12 +6,18 @@
 qralgos = { 'qr', 'qrhh', 'qrcgs', 'qrmgs' };
 
 N = 20;
+M = 30;
+
 disp( sprintf( '\nTesting various QR algorithms, reporting orthogonality (ie norm of Q''Q-I)\n and norm of A-QR (smaller=better)')); 
 for Typ = 1:6
-	TestMat = gentestmat( N, Typ );
+	TestMat = gentestmat( Typ, M, N );
 	
-	for k = 1:size(qralgos,2)
-        [Q,R]   = feval( qralgos{ k }, TestMat );
+	for k = 1:size( qralgos, 2 )
+        if k == 1
+            [Q,R]   = feval( qralgos{ k }, TestMat, 0 );
+        else
+            [Q,R]   = feval( qralgos{ k }, TestMat );
+        end;
         Ortho   = norm( Q'*Q - eye( N ) );
         ErrNorm = norm( TestMat-Q*R );
         disp( sprintf( 'Algo %6s: Ortho %12g, ErrNorm %12g', qralgos{k}, Ortho, ErrNorm ) );
