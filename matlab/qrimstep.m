@@ -24,17 +24,18 @@ y       = TS(1, 2);
 
 % note: later, we would want to pass a matrix in to be updated
 % (instead of starting from the identity, and then multiply...)
-% Q       = eye( N );
-% done...
+if nargin < 2
+    Q   = eye( N );
+end;
 
 for k = 1:(N-1)
     % compute Givens rotation, around k,k+1, G = [c s; -s c]
-    [ c s ] = givens( x, y );                           % flops: 5 + 1 sqrt
+    [ c s ]         = givens( x, y );                   % flops: 5 + 1 sqrt
     % rotate T: want T+ = G' T G, and Q+ = Q G
     G               = [ c s; -s c ];
     K               = min( N, k+2 );                    % flops: 1, or so...
     % update Q
-    Q( 1:K, k:k+1 ) = Q( 1:K, k:k+1 ) * G;              % flops: 6 * K
+    Q(:, k:k+1 )    = Q(:, k:k+1 ) * G;                 % flops: 6 * FIX
     % for T in ordinary format, we want:
     % T( k:k+1, k-1:K ) = G' * T( k:k+1, k-1:K );
     % T( k-1:K, k:k+1 ) = T( k-1:K, k:k+1 ) * G;
