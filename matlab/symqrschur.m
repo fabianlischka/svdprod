@@ -50,7 +50,7 @@ while q < N
     if q == N-1
         q = N;  % and abort
     else        % do some work: on D22, ie TS( p+1:N-q, : )
-        [ TS( p+1:N-q, : ), Q ] = qrimstep( TS( p+1:N-q, : ), Q );
+        [ TS( p+1:N-q, : ), Q(:, p+1:N-q ) ] = qrimstep( TS( p+1:N-q, : ), Q(:, p+1:N-q ) );
     end;
 %    TS
 %    Q
