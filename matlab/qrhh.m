@@ -20,7 +20,7 @@ for k = 1:N
     x1 = v(1);
     sigma = v(2:end)'*v(2:end);
     if isempty( sigma ) || sigma == 0
-        R(k,k) = x1;  % = norm(x). No need to update rest of matrix (or betas), since beta = 0
+        % R(k,k) = x1;  % = norm(x). No need to update this (already set) or rest of matrix (or betas), since beta = 0
         % NOTE: used to be abs(x1) = norm(x), but now reverted to x1. Why?
         % because if we flip sign here to maintain positive diagonal on R,
         % we would need to flip sign in Q, but there is no way to store
