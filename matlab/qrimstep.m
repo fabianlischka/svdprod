@@ -19,8 +19,12 @@ function [ TS, Q ] = qrimstep( TS, Q )
     %           = d^2 - (d^2 + b^2) = - b^2, so we can avoid cancelation
     %           between d and the square root, particularly when b^2 (which
     %           is the last superdiagonal element) is small - which we hope!
-    mu      = TS( N, 1 ) - ( TS(N-1, 2)^2 / ( d + sign(d)*sqrt(d^2 + TS(N-1, 2)^2) ) );
-
+    if d == 0
+        mu = TS( N, 1 );
+    else
+        mu      = TS( N, 1 ) - ( TS(N-1, 2)^2 / ( d + sign(d)*sqrt(d^2 + TS(N-1, 2)^2) ) );
+    end;
+    
     %   note: Givens(x) gives us G with G'x=scalar * e1,
 	%   so GG'x = x = scalar * G * e1, so we can chose x=(T-mu I)e1, 
 	%   and use the normal Givens routine!
