@@ -4,7 +4,7 @@ N = 60;
 
 disp( sprintf( '\nTesting SYMQRSCHUR with various (symmetrized) %g x %g matrices', N, N )); 
 for Typ = 1:12
-	TestMat = gentestmat( Typ, M, N, 0 );
+	TestMat = gentestmat( Typ, N, N, 0 );
     TestMat = TestMat + TestMat';
     Ev      = eig( TestMat );
     ErrEv   = sort(symqrschur( TestMat ) ) - sort( Ev );
