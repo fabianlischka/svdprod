@@ -34,3 +34,4 @@ end
 
 % flop count: sum k=1:N ( 3M + 4M*(k-1) ) = 3MN + 2MN^2
 % for M>=N, the order is 2MN^2
+% for M=N, 2 N^3
