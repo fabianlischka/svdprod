@@ -82,9 +82,11 @@
 
 % \setcounter{section}{3}
 \section{Introduction}
-The computation of the SVD of a matrix $A$ is often preceded by the reduction of $A$ to bidiagonal form $B = U_B^T A V_B$.  We consider the case that $A$ is a product of square matrices $A=A_K\cdots A_2 A_1$. The idea pursued here, as presented in \cite{587733}, is to compute the bidiagonal form of $A$ implicitly, without ever forming the product explicitly.
+The computation of the SVD of a matrix $A$ is often preceded by the reduction of $A$ to bidiagonal form $B = U_B^T A V_B$.  We consider the case that $A$ is a product of square matrices $A=A_K\cdots A_2 A_1$. The idea pursued here, as presented in \cite{587733}, is to compute the bidiagonal form of $A$ implicitly, using Householder reflections, without ever forming the product explicitly. The flop count (about $(4+4K)N^3$ for the bidiagonalization) is very favorable compared to other methods that require about 3 to 10 times more work. 
 
-The algorithm to compute the SVD of a matrix product has been implemented in MATLAB from scratch, and in this note all the basic building blocks to assemble the algorithm are described. 
+Using a few simple test cases with known singular values, we show that the accuracy of computed singular values---particular small ones---is vastly superior to computing the SVD from the explicitly formed product.
+
+The algorithm with all the basic building blocks has been implemented here, and this note contains a description and all the source code.
 
 \section{The Normal SVD}
 
@@ -306,6 +308,7 @@ The test matrices were generated with \emph{gentestmat}, page \pageref{rc:gentes
 This facilitated finding certain bugs. For example, if the '$\le$' in line 21 in algorithm \emph{gksvdsteps} on page \pageref{rc:gksvdsteps} is replaced by a '$<$', the algorithm runs into an infinite loop in certain cases (namely if the surrounding off-diagonal elements are (or have been set to) zero).\footnote{Of course, careful reading of \cite[page 455]{GolL96} would have prevented this in the first place...}
 
 \appendix
+\newpage
 \section{Source Code}
 
 \subsection{Bidiagonalization}
