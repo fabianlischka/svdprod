@@ -48,12 +48,14 @@ while q < N
         % first, determine if any element on the diagonal is zero
         % if so, rotate it aside
         k = p+1;
-        while B( k, 1 ) ~= 0  && k < N-q
+        smalldiag = tol * norm( B, 'inf' );
+        while abs( B( k, 1 ) ) > smalldiag  && k < N-q
             k = k+1;
         end;
-        % now, k == N-q, or B(k,1) == 0, or both
-        if abs( B( k, 1 ) ) <= eps * norm( B, 'inf' )
-            % now, B( k, 1 ) == 0, p+1 <= k <= N-q, B(N-q,2) == 0 (note:
+        % now, k == N-q, or abs( B(k,1) ) <= smalldiag, or both
+        if abs( B( k, 1 ) ) <= smalldiag
+            B( k, 1 ) = 0;
+            % now, B( k, 1 ) approx 0, p+1 <= k <= N-q, B(N-q,2) == 0 (note:
             % even if q == 0, by the format we have chosen)
             if k < N-q
                 disp('rotating empty diagonal away to the right')
