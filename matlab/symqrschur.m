@@ -17,43 +17,29 @@ N   = size( TS, 1 );
 q   = 0;
 while q < N
     q   = 0; p = N-1;
-    % disp(' - ');
     for k = N-1:-1:1
-        % disp( sprintf( 'off diag: %12g, on diags: %12g   %12g', abs( TS( k, 2 ) ), abs( TS( k, 1 ) ), abs( TS( k+1, 1 ) ) ) );
         if abs( TS( k, 2 ) ) <= tol * ( abs( TS( k,1 ) ) + abs( TS( k+1, 1 ) ) )
             TS( k, 2 ) = 0;
-            if q == N-k-1   % state one
+            if q == N-k-1   % state one:    we are in D33
                 q = N-k;
                 p = k-1;
-            % else          % state three
+            % else          % state three:  we are in D11
             end;
         else
-            if p == k       % state two
+            if p == k       % state two:    we are in D22
                 p = k-1;
-            % else          % state three
+            % else          % state three:  we are in D11
             end;
         end;
     end;
     % after this loop: TS(p+1,2)..TS(N-q-1,2) are non zero,
     % TS(N-q,2)..TS(N-1,2) are zero
-    % ie all zero -> q=N, p=0; all nonzero -> q=0; p=0
-    % three states: 3, 2, 1
-    
-    % start: q = 0; p = N-1; k = N-1
-    % state 1:
-    % TS(k,2) == 0 ? q++, k--, p--, state 1  :  k--, state 2
-    % state 2:
-    % TS(k,2) == 0 ? k--, state 3 : k--, p--, state 2
-    % state 3:
-    % k--
+    % ie, if all zero -> q=N, p=0; all nonzero -> q=0; p=0
     
     if q == N-1
         q = N;  % and abort
     else        % do some work: on D22, ie TS( p+1:N-q, : )
         [ TS( p+1:N-q, : ), Q(:, p+1:N-q ) ] = qrimstep( TS( p+1:N-q, : ), Q(:, p+1:N-q ) );
     end;
-%    TS
-%    Q
-%    Q*strids2l(TS)*Q'
 end;
 D = TS( :,1 );
