@@ -35,7 +35,7 @@ for k = 1:(N-1)
         % HH reflector now: I - beta * v * v'. Note: v(1) = 1
         
         R(k,k) = mu;                            % = norm(x)
-        R(k:N,(k+1):N) = R(k:N,(k+1):N) - betas( k ) * v * v' * R(k:N,(k+1):K);
+        R(k:N,(k+1):N) = R(k:N,(k+1):N) - betas( k ) * v * v' * R(k:N,(k+1):N);
         % (note: if we computed (v*v')*R, we would neet 2MN^2 flops, but
         % with v*(v'*R) we only need 4NM!!)
         % collect Qi
