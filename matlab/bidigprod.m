@@ -17,20 +17,26 @@ N   = size( A, 1 );
 if size( A, 2 ) ~= N
     error( 'matrices in A must be square (ie size(A,1)=size(A,2))' )
 end;
-    
+
+computevectors = (nargout > 1);
+
 K   = size( A, 3 );
-V   = eye( N );
-A(:,:,K+1)  = V;    % this is U
+if computevectors
+    V   = eye( N );
+    A(:,:,K+1)  = V;    % this is U
+end;
 
 for t=1:N-1
     for k=1:K
         [ v, beta, mu ] = house( A( t:N, t, k ) );
         % I-beta vv' is Q^t_k, applied to t:N
         % multiply Ak from left...
-        A( t:N, t:N, k )    = A( t:N, t:N, k   ) - beta * v * v' * A( t:N, t:N, k );
-        % and Ak+1 from right - here we need to multiply all columns,
-        % since we don't have the zeros needed in here
-        A(  : , t:N, k+1 )  = A(  : , t:N, k+1 ) - A(  : , t:N, k+1 ) * v * v' * beta;
+        A( t:N,t:N, k ) = A( t:N,t:N, k ) - beta*v*v' * A( t:N,t:N, k );
+        if k<K || computevectors
+            % and Ak+1 from right - here we need to multiply all columns,
+            % since we don't have the zeros needed in here
+            A( :,t:N, k+1 ) = A( :,t:N, k+1 ) - A( :,t:N, k+1 )*v*v'*beta;
+        end;
     end;
 
     if t < N-1
@@ -44,15 +50,17 @@ for t=1:N-1
         [ v, beta, mu ] = house( row( 1, 2:end )' );    
         % multiply A( 1 ) and V from the right
         % need to multiply full columns (all rows), since might be filled
-        A( :, t+1:N, 1 )    = A( :, t+1:N, 1 ) - A( :, t+1:N, 1 ) * v * v' * beta;
-        V( :, t+1:N )       = V( :, t+1:N )    - V( :, t+1:N )    * v * v' * beta;
+        A( :, t+1:N, 1 ) = A( :,t+1:N, 1 ) - A( :,t+1:N, 1 )*v*v'*beta;
+        if computevectors
+            V( :,t+1:N ) = V( :,t+1:N )    - V( :, t+1:N )  *v*v'*beta;
+        end;
     end;
 end;
-
 % now B = A(:,:,K+1)'*AA*V = A(:,:,K)*...*A(:,:,2)*A(:,:,1)
-q   = ones(N,1);
-e   = zeros(N-1,1);
 
+q   = ones(N,1);     % this will be the diagonal of the product B
+e   = zeros(N-1,1);  % superdiagonal of the product B
+% note: to compute q, e, we only need diagonal and superdiag of A !
 for k=1:K
     d   = diag( A(:,:,k) );
     e   = e .* d(1:end-1) + q(2:N) .* diag( A(:,:,k), 1 );
