@@ -19,7 +19,14 @@ N = size( B, 1 );
 % mu should be the eigenvalue (closer to the lower right) of
 % ( B(N-1,1)^2 + B(N-2,2)^2    ,  B(N-1,1) * B(N-1,2)    )
 % ( B(N-1,1) * B(N-1,2)        ,  B(N,1)^2 + B(N-1,2)^2  )
-mu = wilkinsonshift( B(N-1,1)^2+B(N-2,2)^2,  B(N-1,1)*B(N-1,2),  B(N,1)^2+B(N-1,2)^2 );
+if N > 2
+    mu = wilkinsonshift( B(N-1,1)^2+B(N-2,2)^2,  B(N-1,1)*B(N-1,2),  B(N,1)^2+B(N-1,2)^2 );
+else if N ==2
+        mu = wilkinsonshift( B(N-1,1)^2,  B(N-1,1)*B(N-1,2),  B(N,1)^2+B(N-1,2)^2 );
+    else
+        error('Cannot perform GK SVD step on B with N < 2')
+    end
+end
 
 x  = B( 1, 1 )^2 - mu;
 y  = B( 1, 1 ) * B( 1, 2 );
@@ -37,15 +44,15 @@ for k = 1:N-1
     [ c s ]     = givens( x, y );                       % flops: 5 + 1 sqrt    
     % rotate B: want B_(1/2) = B G, V+ = V G
     G           = [ c s; -s c ];
-    K           = min( N, k+2 );                        % flops: 1, or so...
-    % update V
-    V( 1:K, k:k+1 ) = V( 1:K, k:k+1 ) * G;              % flops: 6 * K
+    % update V - we update the full column, since we don't know what was
+    % passed in
+    V(:, k:k+1) = V(:, k:k+1) * G;                      % flops: 6 * N
     % for B in ordinary format, we want:
     % B( k-1:K, k:k+1 ) = B( k-1:K, k:k+1 ) * G;
 
     if k > 1
         % for debugging we can compute the zero'ed out element:
-        zerod   = s * B(k-1,2) + c * bulge
+        % zerod   = s * B(k-1,2) + c * bulge
         B( k-1, 2 ) =  c * B( k-1, 2 ) - s * bulge;     % flops: 3
     end;
     Bk          = B( k, 1 );
@@ -59,15 +66,16 @@ for k = 1:N-1
     y           = bulge;       % which we want to eliminate...
     
     % compute Givens rotation, around k,k+1 FROM LEFT, G = [c s; -s c]
-    [ c s ] = givens( x, y );                           % flops: 5 + 1 sqrt    
+    [ c s ]     = givens( x, y );                           % flops: 5 + 1 sqrt    
     % rotate B: want B_+ = G' B_(1/2), U+ = U G
-    G               = [ c s; -s c ];
-    % update U
-    U( 1:K, k:k+1 ) = U( 1:K, k:k+1 ) * G;              % flops: 6 * K
+    G           = [ c s; -s c ];
+    % update U (from right, since transposed)
+    % we update the full column, since don't know what was passed in
+    U(:, k:k+1) = U(:, k:k+1 ) * G;              % flops: 6 * K
     % for B in ordinary format, we want:
     % B = G' * B;
 
-    zerod       =  s * B( k, 1 ) + c * bulge
+    % zerod       =  s * B( k, 1 ) + c * bulge
     B( k, 1 )   =  c * B( k, 1 ) - s * bulge;
     Bk2         = B( k, 2 );
     B( k, 2 )   =  c * Bk2       - s * B( k+1, 1 );
