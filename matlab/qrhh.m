@@ -9,18 +9,19 @@ if M < N
 end;
 
 Q = eye(M, N);      % Q will be M x N
-R = A(1:N,:);       % R will be N x N
+R = A;              % R will be N x N .. later
 betas = zeros( N );
 
-for k = 1:(N-1)
-    % determine HH reflector for column A(k:N,k)
-    % [ v, beta ] = house( A(k:N,k) );   - we will do it explicitly here
-    v  = R(k:N,k);
+for k = 1:N
+    % determine HH reflector for column A(k:M,k)
+    % [ v, beta ] = house( A(k:M,k) );   
+    % we will do it explicitly here - flops: 3(M-k)
+    v  = R(k:M,k);
     x1 = v(1);
     sigma = v(2:end)'*v(2:end);
     if sigma == 0
-        R(k,k) = abs( x1 );  % = norm(x). No need to update rest of matrix (or betas), since beta = 0
-        R((k+1):K,k) = 0;
+        R(k,k) = x1;  % = norm(x). No need to update rest of matrix (or betas), since beta = 0
+        R((k+1):N,k) = 0;
 	else    % note: here, we always choose v = x - norm(x) * e1, ie v(1) always < 0
         mu = sqrt( x1^2 + sigma );  % = norm( x )
         if x1 <= 0
@@ -35,21 +36,27 @@ for k = 1:(N-1)
         % HH reflector now: I - beta * v * v'. Note: v(1) = 1
         
         R(k,k) = mu;                            % = norm(x)
-        R(k:N,(k+1):N) = R(k:N,(k+1):N) - betas( k ) * v * v' * R(k:N,(k+1):N);
+                                                % flops until here: 3(M-k)
+        R(k:M,(k+1):N) = R(k:M,(k+1):N) - betas( k ) * v * v' * R(k:M,(k+1):N);
         % (note: if we computed (v*v')*R, we would neet 2MN^2 flops, but
         % with v*(v'*R) we only need 4NM!!)
+                                                % flops: 4*(N-k)(M-k) 
         % collect Qi
-        R((k+1):N,k) = v(2:end);
+        R((k+1):M,k) = v(2:end);
 	end;
 end;
 
 % compute Q, and zero out R
-for k = (N-1):-1:1
+for k = N:-1:1
     % HH reflector now: I - beta * v * v'. Note: v(1) = 1
     v(k)=1;
-    v((k+1):N) = R((k+1):N,k);
-    Q(k:N,k:N) = Q(k:N,k:N) - betas( k ) * v(k:N) * transpose(v(k:N)) * Q(k:N,k:N);
-    R((k+1):N,k) = 0;
+    v((k+1):M) = R((k+1):M,k);
+    Q(k:M,k:N) = Q(k:M,k:N) - betas( k ) * v(k:M) * transpose(v(k:M)) * Q(k:M,k:N);
+    R((k+1):M,k) = 0;
 end;
+R = R(1:N,:);
 
-% flop count: tbd
+% flop count: without computing Q: 
+% sum k=1:N of 4(N-k)(M-k) = 4 sum k=1:N k(M-N+k)
+% = 4 sum k^2 + 4(M-N) sum k = 4/3 N^3 + 4/2(M-N)N^2
+% = 2 N^2(M-N/3)
