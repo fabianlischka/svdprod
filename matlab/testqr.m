@@ -1,3 +1,7 @@
+% TESTQR runs a few QR decompositions for a test matrix, 
+% and reports the orthogonality (norm of Q'Q-I), and norm of A-QR
+% $Id$
+
 qralgos = { 'qr', 'qrhh', 'qrcgs', 'qrmgs' };
 
 N=60;
