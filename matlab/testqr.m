@@ -9,7 +9,7 @@ M = 20;
 N = 20;
 
 disp( sprintf( '\nTesting various QR algorithms, reporting orthogonality (ie norm of Q''Q-I)\n and norm of A-QR (smaller=better)')); 
-for Typ = 1:13
+for Typ = 1:14
 	TestMat = gentestmat( Typ, M, N );
     for k = 1:size( qralgos, 2 )
         if k == 1
