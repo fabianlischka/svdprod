@@ -1,6 +1,7 @@
 % $Id$
 
 tol = 1e-10;
+disp( sprintf( '\n\nTEST SYMTRIDHH' ) );
 disp( 'We generate symmetrized testmatrices A, and compute tridiagonal T = Q''AQ, with Q orthogonal.' );
 disp( 'We then compute evals of A and T, and display the norm of the difference (relative to the' );
 disp( 'norm of the evals itself). We also consider the norm of redidual A-QTQ'', and check' );

@@ -18,7 +18,7 @@ for Typ = 1:14
             [Q,R]   = feval( qralgos{ k }, TestMat );
         end;
         Ortho   = norm( Q'*Q - eye( N ) );
-        ErrNorm = norm( TestMat-Q*R );
+        ErrNorm = norm( TestMat-Q*R, 1 );
         disp( sprintf( 'Algo %6s: Ortho %12g, ErrNorm %12g', qralgos{k}, Ortho, ErrNorm ) );
 	end;
 end;
