@@ -64,6 +64,7 @@ if nargout > 1
         V(k:N,k:N)  = V(k:N,k:N) - gammas( k-1 ) * v(k:N) * v(k:N)' * V(k:N,k:N);
         B(k-1,k+1:N)= 0;
     end;
+    V( 1, 1 ) = sign( U(:,1)'*A(:,1) ) * sign( B(1,1) );
 else
     B = [ diag(B) [ diag(B,1); 0 ] ];
 end;
