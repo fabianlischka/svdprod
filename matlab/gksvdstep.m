@@ -21,8 +21,8 @@ N = size( B, 1 );
 % ( B(N-1,1) * B(N-1,2)        ,  B(N,1)^2 + B(N-1,2)^2  )
 mu = wilkinsonshift( B(N-1,1)^2+B(N-2,2)^2,  B(N-1,1)*B(N-1,2),  B(N,1)^2+B(N-1,2)^2 );
 
-x  = B( 1, 1 ) - mu;
-y  = B( 1, 2 );
+x  = B( 1, 1 )^2 - mu;
+y  = B( 1, 1 ) * B( 1, 2 );
 
 if nargin < 3
     V  = eye( N );
