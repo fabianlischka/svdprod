@@ -106,7 +106,7 @@ switch Typ
         for k=1:K
             A(:,:,k) = Toep;
 		end;
-		true = (a + 2*cos((1:N)'/(N+1) * pi )).^K;
+		true = (a + 2*b*cos((1:N)'/(N+1) * pi )).^K;
 end;
 true = sort( true );
 
