@@ -18,7 +18,7 @@ for M = 30:21:72
             Vdev    = norm( V'*V - eye( N ) );
             disp( sprintf( 'type %2g: err: %12g, relerr: %12g, relerrSVs: %12g, Udev: %12g, Vdev: %12g', Typ, dev, reldev, devsvd, Udev, Vdev ) );
             if reldev > tol || Udev > tol || Vdev > tol || devsvd > tol
-                disp( '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' );
+                disp( '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^' );
             end
             TestMat = TestMat';
         end;
