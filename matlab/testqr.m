@@ -10,15 +10,16 @@ N = 20;
 
 disp( sprintf( '\nTesting various QR algorithms, reporting orthogonality (ie norm of Q''Q-I)\n and norm of A-QR (smaller=better)')); 
 for Typ = 1:14
-	TestMat = gentestmat( Typ, M, N );
+	TestMat = gentestmat( Typ, M, N, 0 );
+    disp( sprintf( '\nTyp %3g, condition number %12g\n', Typ, cond( TestMat ) ) );
     for k = 1:size( qralgos, 2 )
         if k == 1
             [Q,R]   = feval( qralgos{ k }, TestMat, 0 );
         else
             [Q,R]   = feval( qralgos{ k }, TestMat );
         end;
-        Ortho   = norm( Q'*Q - eye( N ) );
-        ErrNorm = norm( TestMat-Q*R, 1 );
+        Ortho   = norm( Q'*Q - eye( N ), 'fro' );
+        ErrNorm = norm( TestMat-Q*R, 'fro' );
         disp( sprintf( 'Algo %6s: Ortho %12g, ErrNorm %12g', qralgos{k}, Ortho, ErrNorm ) );
 	end;
 end;
