@@ -99,7 +99,7 @@ while q < N
                     end;
                     % rotate V from right
                     G       = [ c s; -s c ]; 
-                    V(:,[k j]) = V(:,[k j]) * G;       % flops: 6*M
+                    V(:,[j k]) = V(:,[j k]) * G;       % flops: 6*M
                 end
             end % if k
         else    % no element on the diagonal is zero
