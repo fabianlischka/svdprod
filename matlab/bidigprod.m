@@ -23,19 +23,23 @@ computevectors = (nargout > 1);
 K   = size( A, 3 );
 if computevectors
     V   = eye( N );
-    A(:,:,K+1)  = V;    % this is U
+    A(:,:,K+1) = V;    % this is U
 end;
 
 for t=1:N-1
     for k=1:K
-        [ v, beta, mu ] = house( A( t:N, t, k ) );
+        [ v, beta, mu ] = house( A( t:N, t, k ) );  % flops: 3(N-t)
         % I-beta vv' is Q^t_k, applied to t:N
         % multiply Ak from left...
         A( t:N,t:N, k ) = A( t:N,t:N, k ) - beta*v*v' * A( t:N,t:N, k );
-        if k<K || computevectors
-            % and Ak+1 from right - here we need to multiply all columns,
+                                                    % (flops: 4(N-t)^2)
+                                                    % flops: 4K(N-t)^2
+        if k<K || computevectors % execute almost always
+            % ...and Ak+1 from right - here we need to multiply all columns,
             % since we don't have the zeros needed in here
             A( :,t:N, k+1 ) = A( :,t:N, k+1 ) - A( :,t:N, k+1 )*v*v'*beta;
+                                                    % flops: 4(K-1)N(t-N)
+                                                    % with vector: +4N(t-N)
         end;
     end;
 
@@ -43,20 +47,27 @@ for t=1:N-1
         % now, determine the t-th row of the product
         row = A( t, t:N, K );
         for k = K-1:-1:1
-            row = row * A( t:N, t:N, k );
+            row = row * A( t:N, t:N, k );           % (flops: 2(N-t)^2)
         end;
+                                                    % flops: 2K(N-t)^2
         % and determine householder to eliminate it!
         % (the diagonal element remains untouched (and is thrown away))
-        [ v, beta, mu ] = house( row( 1, 2:end )' );    
+        [ v, beta, mu ] = house( row( 1, 2:end )' );  % flops: 3(N-t)
         % multiply A( 1 ) and V from the right
         % need to multiply full columns (all rows), since might be filled
         A( :, t+1:N, 1 ) = A( :,t+1:N, 1 ) - A( :,t+1:N, 1 )*v*v'*beta;
+                                                    % flops: 4N(t-N)
         if computevectors
             V( :,t+1:N ) = V( :,t+1:N )    - V( :, t+1:N )  *v*v'*beta;
+                                                    % flops: 4N(t-N)
         end;
     end;
+    % total flops per t:  with vectors (8+4K) N(t-N) + 6K (N-t)^2
+    %                     = (4+4K) N^3
+    %                     without vectors: (4K) N^3
 end;
 % now B = A(:,:,K+1)'*AA*V = A(:,:,K)*...*A(:,:,2)*A(:,:,1)
+
 
 q   = ones(N,1);     % this will be the diagonal of the product B
 e   = zeros(N-1,1);  % superdiagonal of the product B

@@ -55,6 +55,7 @@ if nargout > 1
         v(k)        = 1;
         v(k+1:M)    = B((k+1):M,k);
         U(k:M,k:M)  = U(k:M,k:M) - betas( k ) * v(k:M) * v(k:M)' * U(k:M,k:M);
+        % flop count: 4*(M-k)^2
         B(k+1:M,k)  = 0;
     end;
     V = eye( N );
@@ -62,8 +63,13 @@ if nargout > 1
         v(k)        = 1;
         v(k+1:N)    = B(k-1,(k+1):N)';
         V(k:N,k:N)  = V(k:N,k:N) - gammas( k-1 ) * v(k:N) * v(k:N)' * V(k:N,k:N);
+        % flop count: 4*(N-k)^2
         B(k-1,k+1:N)= 0;
     end;
-    % V( 1, 1 ) = sign( U(:,1)'*A(:,1) ) * sign( B(1,1) );
 end;
 B = [ diag(B) [ diag(B,1); 0 ] ];
+
+% flop count for V: 4/3 N^3
+% flop count for U: 4( NM^2 - MN^2 + N^3/3 )
+% total flops (with computing U,V)
+% 4 NM^2 + 4/3 N^3, or for M==N, 16/3 N^3 = 5.3 N^3
