@@ -13,22 +13,8 @@ function [ TS, Q ] = qrimstep( TS, Q )
 N = size( TS, 1 );
 % note: T in short format
 
-d       = ( TS( N-1, 1 ) - TS( N, 1 ) ) / 2;    % flops: 2
-% mu      = TS( N, 1 ) + d - sign( d ) * sqrt( d^2 + TS(N-1, 2)^2 );
-% note that ( d - sign(d)*sqrt(d^2+b^2) ) * ( d + sign(d)*sqrt(d^2+b^2) ) =
-%           = d^2 - (d^2 + b^2) = - b^2, so we can avoid cancelation
-%           between d and the square root, particularly when b^2 (which
-%           is the last superdiagonal element) is small - which we hope!
-if d == 0
-    % then evals are a +- abs(b), we choose absolutely larger to avoid cancellation
-    if TS( N, 1 ) > 0
-        mu      = TS( N, 1 ) + abs( TS( N-1, 2 ) );
-    else
-        mu      = TS( N, 1 ) - abs( TS( N-1, 2 ) );
-    end
-else
-    mu      = TS( N, 1 ) - ( TS(N-1, 2)^2 / ( d + sign(d)*sqrt(d^2 + TS(N-1, 2)^2) ) );
-end;
+% determine Wilkinson shift
+mu = wilkinsonshift( TS( N-1, 1 ), TS( N-1, 2 ), TS( N, 1 ) ); 
 
 %   note: Givens(x) gives us G with G'x=scalar * e1,
 %   so GG'x = x = scalar * G * e1, so we can chose x=(T-mu I)e1, 
