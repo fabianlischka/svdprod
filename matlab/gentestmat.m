@@ -20,6 +20,8 @@ As      = { '-triu( ones( M ) ) + 2 * diag( ones( M, 1 ) )',
                 '1 big   eval, one evect';
             'W* diag([1:M-1], 1 ) * transpose(W)',
                 'zero eigenvals, one evect',
+            '-(rand( M, N )>(1-5/(M*N)))',
+                'sparse matrix with 95% negative ones, rest zero'
             'hilb( M )',
                 'Hilbert matrix';
             'full( gallery( ''dorr'', M, 0.02 ) )',
