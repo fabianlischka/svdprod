@@ -37,6 +37,7 @@ end
 K = 4;
 for M=5:21:47
     fprintf( fid,  '\nTesting GKSVDPROD with various %g x %g matrices\n', M, M ); 
+    fprintf( fid,  'Prod of types:   SVs 2-norm        RelRes        U Orth        V Orth\n' );
     TestMats = zeros(M,M,14);
     for Typ = 1:14
         TestMats(:,:,Typ) = gentestmat( Typ, M, M, 0 );
@@ -52,8 +53,7 @@ for M=5:21:47
         RelRes  = Res / norm( Amul );
         UOrth   = norm( U'*U - eye( M ) );
         VOrth   = norm( V'*V - eye( M ) );        
-        fprintf( fid,  'Product of types %2g to %2g: svd 2-norm: %12g, RelRes: %12g, UOrth: %12g, VOrth: %12g\n', ...
-              k, k+K, ErrSvd, RelRes, UOrth, VOrth );
+        fprintf( fid,  '   %3g ... %2g: %12g, %12g, %12g, %12g\n', k, k+K, ErrSvd, RelRes, UOrth, VOrth );
         if RelRes > tol || UOrth > tol || VOrth > tol || ErrSvd > tol
             fprintf( fid,  '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^\n' );
         end
@@ -64,6 +64,7 @@ M = 8;
 K = 6;
 A   = zeros( M,M,K );
 fprintf( fid,  '\nTesting GKSVDPROD, random combinations of off-diagonal elements zero, %g x %g matrices\n', M, M ); 
+fprintf( fid,  'Combinations:   SVs 2-norm        RelRes        U Orth        V Orth\n' );
 for l=1:10
     for k = 1:K
         Bits    = bitget( floor( rand(1) * 2^M ), 1:M-1 );
@@ -78,8 +79,7 @@ for l=1:10
     RelRes  = Res / norm( Amul );
     UOrth   = norm( U'*U - eye( M ) );
     VOrth   = norm( V'*V - eye( M ) );        
-    fprintf( fid,  'Prod of %2g combinations: svd 2-norm: %12g, RelRes: %12g, UOrth: %12g, VOrth: %12g\n', ...
-          K, ErrSvd, RelRes, UOrth, VOrth );
+    fprintf( fid,  '       %2g   : %12g, %12g, %12g, %12g\n', K, ErrSvd, RelRes, UOrth, VOrth );
     if RelRes > tol || UOrth > tol || VOrth > tol || ErrSvd > tol
         fprintf( fid,  '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^\n' );
     end

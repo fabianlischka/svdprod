@@ -14,7 +14,8 @@ fprintf( fid,  'We then compute evals of A and T, and display the norm of the di
 fprintf( fid,  'norm of the evals itself). We also consider the norm of redidual A-QTQ'', and check\n' );
 fprintf( fid,  'orthogonality, norm of Q''Q-I. All errors should be around 1e-15.\n' );
 for N=3:37:77
-    fprintf( fid,  '\nTesting SYMTRIDHH with various (symmetrized) %g x %g matrices\n', N, N ); 
+    fprintf( fid,  '\nTesting SYMTRIDHH with various (symmetrized) %g x %g matrices\n', N, N );
+    fprintf( fid,  'Type:   Eig 2-norm        RelRes          Orth\n' );
     for Typ = 1:14
         TestMat = gentestmat( Typ, N, N, 0 );
         TestMat = TestMat + TestMat';
@@ -24,7 +25,7 @@ for N=3:37:77
         Res     = norm( TestMat - Q*T*Q' );
         RelRes  = Res / norm( TestMat );
         Orth    = norm( Q'*Q - eye( N ) );
-        fprintf( fid,  'Type %2g: eval infnorm: %12g; RelRes: %12g, Orth: %12g\n', Typ, ErrEv, RelRes, Orth ) ;
+        fprintf( fid,  '  %2g: %12g, %12g, %12g\n', Typ, ErrEv, RelRes, Orth );
         if RelRes > tol || Orth > tol || ErrEv > tol
             fprintf( fid,  '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^\n' );
         end

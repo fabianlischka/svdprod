@@ -15,7 +15,8 @@ fprintf( fid,  'We also test the norm of A-UDV'', and the orthogonality, via nor
 fprintf( fid,  'All errors should be around 1e-15.\n' );
 for M=5:21:68
     N=min(30,M);
-    fprintf( fid,  '\nTesting GKSVD with various %g x %g matrices\n', M, N ); 
+    fprintf( fid,  '\nTesting GKSVD with various %g x %g matrices\n', M, N );
+    fprintf( fid,  'Type:   svd 2-norm        RelRes        U Orth        V Orth\n' );
     for Typ = 1:14
         TestMat = gentestmat( Typ, M, N, 0 );
         [D,U,V] = gksvd( TestMat, 1e-14 );
@@ -25,7 +26,7 @@ for M=5:21:68
         RelRes  = Res / norm( TestMat );
         UOrth   = norm( U'*U - eye( M ) );
         VOrth   = norm( V'*V - eye( N ) );        
-        fprintf( fid,  'Type %2g: svd 2-norm: %12g, RelRes: %12g, UOrth: %12g, VOrth: %12g\n', Typ, ErrSvd, RelRes, UOrth, VOrth );
+        fprintf( fid,  '  %2g: %12g, %12g, %12g, %12g\n', Typ, ErrSvd, RelRes, UOrth, VOrth );
         if RelRes > tol || UOrth > tol || VOrth > tol || ErrSvd > tol
             fprintf( fid,  '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^\n' );
         end
@@ -33,7 +34,8 @@ for M=5:21:68
 end
 
 N = 4;
-fprintf( fid,  '\nTesting GKSVD, all combinations of off-diagonal elements zero, %g x %g matrices\n', N, N ); 
+fprintf( fid,  '\nTesting GKSVD, all combinations of off-diagonal elements zero, %g x %g matrices\n', N, N );
+fprintf( fid,  'Type:   svd 2-norm        RelRes        U Orth        V Orth\n' );
 for Typ=0:(2^N-1)
     Bits    = bitget( Typ, 1:N-1 );
     TestMat = -diag( 1:N ) + diag( Bits, 1 );
@@ -44,7 +46,7 @@ for Typ=0:(2^N-1)
         RelRes  = Res / norm( TestMat );
         UOrth   = norm( U'*U - eye( N ) );
         VOrth   = norm( V'*V - eye( N ) );        
-        fprintf( fid,  'Type %2g: svd 2-norm: %12g, RelRes: %12g, UOrth: %12g, VOrth: %12g\n', Typ, ErrSvd, RelRes, UOrth, VOrth );
+        fprintf( fid,  '  %2g: %12g, %12g, %12g, %12g\n', Typ, ErrSvd, RelRes, UOrth, VOrth );
         if RelRes > tol || UOrth > tol || VOrth > tol || ErrSvd > tol
             fprintf( fid,  '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^\n' );
             err;

@@ -15,6 +15,7 @@ fprintf( fid,  'relative to the norm of the vector of eigenvalues itself. Also t
 fprintf( fid,  'All errors should be around 1e-15.\n' );
 for N=5:25:55
     fprintf( fid,  '\nTesting SYMQRSCHUR with various (symmetrized) %g x %g matrices\n', N, N ); 
+    fprintf( fid,  'Type: Eigval 2-norm  Relativ Res   Orthogonal\n' );
     for Typ = 1:14
         TestMat = gentestmat( Typ, N, N, 0 );
         TestMat = TestMat + TestMat';
@@ -24,7 +25,7 @@ for N=5:25:55
         Res     = norm( TestMat - Q*diag(D)*Q' );
         RelRes  = Res / norm( TestMat );
         Orth    = norm( Q'*Q - eye( N ) );
-        fprintf( fid,  'Type %2g: eval 2-norm: %12g, RelRes: %12g, Orth: %12g\n', Typ, ErrEv, RelRes, Orth );
+        fprintf( fid,  ' %2g: %12g,  %12g, %12g\n', Typ, ErrEv, RelRes, Orth );
         if RelRes > tol || Orth > tol || ErrEv > tol
             fprintf( fid,  '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^\n' );
         end
@@ -32,7 +33,8 @@ for N=5:25:55
 end
 
 N = 4;
-fprintf( fid,  '\nTesting SYMQRSCHUR, all combinations of off-diagonal elements zero, %g x %g matrices\n', N, N ); 
+fprintf( fid,  '\nTesting SYMQRSCHUR, all combinations of off-diagonal elements zero, %g x %g matrices\n', N, N );
+fprintf( fid,  'Type: Eigval 2-norm  Relativ Res   Orthogonal\n' );
 for Typ=0:(2^N-2)
     Bits    = bitget( Typ, 1:N-1 );
     TS      = [ 1:N; Bits, 0 ]';
@@ -43,7 +45,7 @@ for Typ=0:(2^N-2)
     Res     = norm( TestMat - Q*diag(D)*Q' );
     RelRes  = Res / norm( TestMat );
     Orth    = norm( Q'*Q - eye( N ) );
-    fprintf( fid,  'Type %2g: eval 2-norm: %12g, RelRes: %12g, Orth: %12g\n', Typ, ErrEv, RelRes, Orth );
+    fprintf( fid,  ' %2g: %12g   %12g  %12g\n', Typ, ErrEv, RelRes, Orth );
     if RelRes > tol || Orth > tol || ErrEv > tol
         fprintf( fid,  '^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^\n' );
     end
