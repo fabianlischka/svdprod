@@ -1,0 +1,154 @@
+\documentclass[11pt]{article}
+%\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{shortvrb}
+\usepackage{listings}
+
+
+\newcommand{\bmat}{\begin{pmatrix}}\newcommand{\emat}{\end{pmatrix}}% for a matrix with round parenthesis, % usage: \[  A = \bmat a11 & a12 \\ a21 & a22 \emat \]   (or more rows/columns) 
+
+\DeclareMathSymbol{\R}{\mathalpha}{AMSb}{"52}
+
+\newcommand{\mg}[1]{\ensuremath{\mathcal{#1}}}
+% caligraphic letters
+
+\newcommand{\ve}[1]{\ensuremath{\mathbf{#1}}}% erzeugt den Parameter in boldface (als Vektor) (au"ser griechische Kleinbuchst.)% (nicht kursiv)
+
+\newcommand{\tnorm}[1]{\ensuremath{\lVert{\ve{#1}}\rVert_2\,}}
+% two-norm (enclosed in double vertical lines, subscript 2)
+% automatically displays arg as vector
+\newcommand{\tnormns}[1]{\ensuremath{\lVert{\ve{#1}}\rVert_2}}
+% same, no space afterwards
+
+\newcommand{\sign}[1]{\ensuremath{\text{sign}(#1)}}
+
+\newcommand{\imag}{\ensuremath{i}}
+\newcommand{\sfrac}[2]{\ensuremath{{\scriptstyle\frac{\scriptstyle #1}{\scriptstyle #2}}}}% smaller fraction
+\newcommand{\hb}{\ensuremath{{\scriptstyle\frac{\scriptstyle 1}{\scriptstyle 2}}}}
+\newcommand{\vecijk}[4]{\ensuremath{{#1}_{#2},\ldots,{#1}_{#3},\ldots,{#1}_{#4}}}% erzeugt mit den Parametern x, i, j, k:% x_i,...,x_j,...,x_k\newcommand{\ddim}[3]{\ensuremath{\underset{\scriptscriptstyle #2\times #3}{\rule[-1ex]{0ex}{+1ex}#1}}}% erzeugt Dimensionsangabe (#2)x(#3) unter Parameter 1
+\newcommand{\sei}[1]{\stackrel{!}{#1}}% "shall be" places a small exclamation sign over the parameter
+
+% manipulate section commands:
+% \newcommand{\newsection}[1]{\newpage\section{#1}}
+ \newcommand{\newsection}[1]{\section{#1}}
+% \renewcommand{\thesubsection}{\thesection (\alph{subsection})}
+
+\newcommand{\readcode}[3]
+{
+	\subsubsection{Listing \textbf{#1} #2}
+	\lstinputlisting[caption={[\textbf{#1} #2]\textbf{#1} #2 #3}, label={rc:#1}]{#1.m}
+}
+% input: name of m file (without .m), short caption, more info
+
+
+\MakeShortVerb{\$}
+\MakeShortVerb{\@}
+
+
+\title{CS 339 Project:\\ The SVD of a Matrix Product}
+\author{Fabian R. Lischka\thanks{Scientific Computing and Computational Mathematics, Stanford University}}
+% note: we introduce cvs info here
+\date{\today\\\tiny{$Id$}}
+
+
+\begin{document}
+
+\lstset{language=Matlab, basicstyle=\footnotesize, numbers=left, numberstyle=\tiny, stepnumber=5, frame=single, columns=flexible, captionpos = b}
+
+\maketitle
+%we use this for the cvs info in the date....
+\DeleteShortVerb{\$}
+\tableofcontents
+\lstlistoflistings
+
+
+% \setcounter{section}{3}
+\section{Introduction}
+We cite all, and \verb+foo+ bar. 
+\section{The normal SVD}
+
+\subsection{Bidiagonalization}
+
+\subsubsection{Householder Reflections}
+Householder reflectors are orthogonal and symmetric matrices\footnote{This implies that they are their own inverse.} that can be used to reflect a vector onto the first coordinate axis (and hence eliminate all vector entries but the first). The construction is simple with a few subtleties in the implementation. Conceptually, we modify a projector. As is well known, a projector $P =\sfrac{\ve v\ve v^T}{\ve v^T\ve v}$ projects a vector onto the line spanned by $\ve v$, while $P^\bot = I - \sfrac{\ve v\ve v^T}{\ve v^T\ve v}$ projects $\ve v$ onto the hyperplane orthogonal to $\ve v$. Now, if we extend the perpendicular line beyond that hyperplane, we obtain the reflection $H = I - 2\sfrac{\ve v\ve v^T}{\ve v^T\ve v}$. For a given vector $\ve x$, we now aim to find $\ve v$ such that $H\ve x=\tnorm x\ve e_1$. This is easily done, the vector \ve v we choose is just $\ve x -\tnorm x \ve e_1$. Then, reflecting \ve x across the hyperplane orthogonal to \ve v will bring it onto $\ve e_1$.
+
+We want to avoid cancellation in computing this difference when \ve x is already close to the first coordinate axis. There are two ways of dealing with this case: Either, one then reflects not onto the positive coordinate axis $\tnorm x \ve e_1$, but onto the negative part $-\tnorm x \ve e_1$, so choose $\ve v = \ve x + \tnorm x \ve e_1$ if e.~g.\ the first element $x_1$ of \ve x is positive, and the original if $x_1\le 0$. (In other words, reflect to that half of the first coordinate axis that is further away).
+Alternatively, compute $x_1 - \tnorm x$ using $x_1 - \tnorm x = \frac{x_1^2 - \tnormns x^2}{x_1 + \tnorm x}=\frac{-\sum_{i=2}^n x_i^2}{x_1 + \tnorm x}$.
+
+To facilitate computation and storage, we can norm \ve v to have $v_1=1$, and compute $\beta = \frac 2{\ve v^T \ve v}$, so that $H = I - \beta \ve v \ve v^T$.
+
+The flop count of determining the Household vector \ve v is around $3N$. An implementation is on page \pageref{rc:house}.
+
+\subsection{The QR algorithm for the symmetric Eigenvalue problem}
+
+Given $A$ symmetric, real, we compute $T=Q^T AQ$ tridiagonal and similar to A, using Householder tridiagonalization. Now we perform $QR$ steps:
+\begin{align*}
+QR&=T  \\
+(\text{so }  R &= Q^T T)\\
+T^+ &= RQ = Q^T TQ
+\end{align*}
+or, with shift $\mu$,
+\begin{align*}
+QR&=T - \mu I \\ 
+(\text{so }  &R  = Q^T T - \mu Q^T)\\
+T^+ &= RQ + \mu I = Q^T TQ
+\end{align*}
+We either perform these steps explicitly, or, appealing to the implicit-Q theorem, implicitly.
+\subsubsection{Explicit QR with Shift}
+When computing an iteration as above, $T$ being tridiagonal allows for a cheaper QR decomposition using Givens rotations (and the essential uniqueness of the QR decomposition), as shown on page \pageref{ml:qrsymtrid}. The essential thing to see is that we can use (orthogonal!) Givens rotations from the left to eliminate the subdiagonal elements of $T$, and obtain an uppertriangular matrix $R$, hence we have $R = G_{N-1}^T\ldots G_2^T G_1^T T$, so $QR=T$ with $Q=G_1 G_2\ldots G_{N-1}$. 
+
+Remarkably, the total flop count for computing $R$ alone is linear, around $25N$, but accumulating $Q$ requires around $3N^2$ flops - still an improvement over the cubic order of full QR.
+
+
+
+\subsubsection{Implicit QR with Shift}
+By the implicit Q theorem, we know that for symmetric real $A$ the transformation to tridiagonal $T = Q^T A Q$ is essentially unique (modulo signs), \emph{given the first column $\ve q_1$ of $Q$}. Now, in the case above, we seek $T^+ = RQ + \mu I = Q^T TQ$, and find it explicitly computing the required $Q$. However, by the implicit Q theorem, if we find \emph{any} orthogonal $G$ such that $G^T T G$ is tridiagonal, and the first column of $G$ is "correct", we know that we have actually found the "correct" $Q$, so we do not need to bother about the QR decomposition. Two questions remain: What is the "correct" first column of $G$? And how do we find the rest of $G$?
+
+\emph{Finding the correct first column}
+
+For the "correct" $G$, we require $GR=T - \mu I$ for some upper triangular $R$, in other words, the first column of $G$ is just a scaled version of the first column on the RHS, that is 
+\begin{equation*}
+	\ve g_1 = \frac{\ve t_1 - \mu \ve e_1}{\tnorm{\ve t_1 - \mu \ve e_1}}.
+\end{equation*}
+
+\emph{Finding the rest of $G$}
+
+Suppose now that we compose all of $G$ as a series of Givens rotations, that is $G = G_1 G_2\ldots G_{N_1}$ with $G_k$ acting (only) on $k$ and $k+1$ - both rows and columns, of course, since we will multiply from both sides. Then
+\begin{align*}	T^+ &= G_{N-1}^T\ldots G_2^T G_1^T     T      G_1 G_2 \ldots G_{N-1} \\
+	G &= G_1 G_2 \ldots G_{N-1}\end{align*}
+
+Consider the first column of $G$ - it will be determined exclusively by $G_1$. Hence, we can choose the rotation matrix $G_1$ such that its first column is parallel to the first column of $T-\mu I$, as explicated above. What effect will that have on the intermediate $T_1 = G_1^T     T      G_1$? It will fill out two elements outside the sub/superdiagonals, namely $t_{13}$ and $t_{31}$ - the famous "bulge". 
+But, note that we can eliminate these elements by judicious choice of $G_2$! Then they will reappear, one element further down --- at position $t_{24}$ and $t_{42}$ --- and can be chased down with further Givens rotations. After all $N-1$ rotations, we end up with a tridiagonal $T^+ = G^TTG$, $G$ orthogonal, and $G_1$ chosen such that $\ve g_1$ parallel to $T-\mu \ve e_1$, as required - hence, by the implicit Q theorem, we have found "the same" $T^+$ as if we had used the explicit QR step (note that the signs of the off-diagonal elements might differ somewhat, by they would have depended on the particular choice of $Q$ (ie the signs of the diagonal of $R$) anyway). 
+
+\subsubsection{Finding the correct shift}
+One reasonable choice for the shift is $mu=T_{nn}$. However, Wilkinson gives heuristic reasons why to prefer the eigenvalue of 
+\[
+	T(n-1:n,n-1:n) = \bmat a_{n-1} & b_{n-1} \\ b_{n-1} & a_n \emat
+\]
+that is closer to $a_n$.
+Now, these eigenvalues are given by 
+\[
+	\lambda_{\pm} = \frac{a_{n-1}+a_n}2 \pm \sqrt{b_{n-1}^2 + \left(\frac{a_{n-1}-a_n}2\right )^2},
+\]
+and the one closer to $a_n$ is given by
+\[
+	\lambda_{n} = \frac{a_{n-1}+a_n}2 - \sign d \sqrt{b_{n-1}^2 + d^2},
+\]
+where $d=(a_{n-1}-a_n)/2$. To avoid cancellation, use
+\[
+	\lambda_{n} = a_n - \frac{ b_{n-1}^2}{d + \sign d \sqrt{b_{n-1}^2 + d^2}}.
+\]
+For $d=0$, the eigenvalues are given by 	$\lambda_{\pm} = a_n \pm | b_{n-1}|$. To avoid cancellation, we use the one that is absolutely greater.
+
+\section{Listings}
+\subsection{QR decomposition}
+
+\readcode{house}{finds the Householder vector}{}
+
+
+\nocite{*}
+
+\bibliography{/Users/frl/Documents/Meins/Stanford/Math/NLA}\bibliographystyle{plain}
+
+\end{document}
