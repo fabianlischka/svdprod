@@ -52,17 +52,17 @@ if nargout > 1
     U = eye( M );
     for k = (N-1):-1:1
         % HH reflector now: I - beta * v * v'. Note: v(1) = 1
-        v(k)       = 1;
-        v((k+1):M) = B((k+1):M,k);
-        U(k:M,k:M) = U(k:M,k:M) - betas( k ) * v(k:M) * v(k:M)' * U(k:M,k:M);
-        B((k+1):M,k) = 0;
+        v(k)        = 1;
+        v(k+1:M)    = B((k+1):M,k);
+        U(k:M,k:M)  = U(k:M,k:M) - betas( k ) * v(k:M) * v(k:M)' * U(k:M,k:M);
+        B(k+1:M,k)  = 0;
     end;
     V = eye( N );
-    for k = (N-2):-1:1
-        v(k+1)      = 1;
-        v((k+2):N)  = B(k,(k+2):N)';
-        V(k+1:N,k+1:N) = V(k+1:N,k+1:N) - gammas( k ) * v(k+1:N) * v(k+1:N)' * V(k+1:N,k+1:N);
-        B(k,(k+2):N) = 0;
+    for k = (N-1):-1:2
+        v(k)        = 1;
+        v(k+1:N)    = B(k-1,(k+1):N)';
+        V(k:N,k:N)  = V(k:N,k:N) - gammas( k-1 ) * v(k:N) * v(k:N)' * V(k:N,k:N);
+        B(k-1,k:N)  = 0;
     end;
 else
     B = [ diag(B) [ diag(B,1); 0 ] ];
