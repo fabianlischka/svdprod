@@ -10,7 +10,7 @@ end;
 
 Q = eye(M, N);      % Q will be M x N
 R = A;              % R will be N x N .. later
-betas = zeros( N );
+betas = zeros( N, 1 );
 
 for k = 1:N
     % determine HH reflector for column A(k:M,k)
@@ -52,7 +52,8 @@ for k = 1:N
 end;
 
 % compute Q, and zero out R
-for k = N:-1:1
+v = zeros( M, 1 );  % note: without this, v is switched to a row vector!!
+for k = (N-1):-1:1
     % HH reflector now: I - beta * v * v'. Note: v(1) = 1
     v(k)=1;
     v((k+1):M) = R((k+1):M,k);
