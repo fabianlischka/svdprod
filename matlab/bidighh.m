@@ -23,7 +23,6 @@ for k = 1:(N-1)
     R((k+1):M,k)    = v(2:end);
     % or, if you don't want to collect it, R((k+1):M,k) = 0;
     R((k+1):M,k)    = 0;
-    R
     if k < N - 1
 		[ v, beta, mu ] = house( R(k,(k+1):N)' );
 		gammas( k )     = beta;
@@ -33,7 +32,6 @@ for k = 1:(N-1)
 		R(k,(k+2):N)    = v(2:end)';
         % or, if you don't want to collect it, R(k,(k+2):N) = 0;
         R(k,(k+2):N)    = 0;
-        R
     end
 end;
 
