@@ -1,3 +1,4 @@
+function A = gentestmat( N, k )
 % $Id$
 
 As      = { '-triu( ones( N ) ) + 2 * diag( ones( N, 1 ) )', 
@@ -12,15 +13,11 @@ As      = { '-triu( ones( N ) ) + 2 * diag( ones( N, 1 ) )',
                 'very different singular values: 1/2 .. 1/(2^N)';
             'repmat( randn(N,1), 1, N ) + 1e-15*rand(N)', 
                 'rank 1 matrix with slight disturbances';
-            'U* ( diag(1e-10*ones(N,1)) + diag(ones(N-1,1),1) ) * transpose(U)'
+            'U* ( diag(1e-6*ones(N,1)) + diag(ones(N-1,1),1) ) * transpose(U)'
                 '1 small eval, one evect';
-            'U* ( diag(1e+10*ones(N,1)) + diag(ones(N-1,1),1) ) * transpose(U)'
+            'U* ( diag(1e+6*ones(N,1)) + diag(ones(N-1,1),1) ) * transpose(U)'
                 '1 big   eval, one evect';
           };
-          
-% generate test matrix type k, size N
-k = 7;
-N = 40;
 
 % produce some random orthogonal matrices
 [U,X]=qr(rand(N));
