@@ -1,5 +1,8 @@
 function [ c, s ] = givens( a, b )
 % GIVENS computes c and s such that [ c -s; s c ] [ a b ]' = [ r 0 ]'
+% protected against overflow
+
+% reference: Golub, Van Loan; 3rd ed; 5.1.8
 % $Id$
 
 if b == 0
@@ -13,5 +16,3 @@ else
 end;
 
 % flop count: 5 and 1 sqrt
-% protected agains overflow
-% reference: Golub, Van Loan; 3rd ed; 5.1.8
