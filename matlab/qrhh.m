@@ -1,5 +1,7 @@
 function [Q,R] = qrhh( A )
-% % QR-decomposition, Householder reflections
+% QRHH computes the reduced QR-decomposition using Householder reflections,
+% ie A_(MxN) = Q_(MxN) * R_(NxN), where the columns of Q are orthonormal,
+% and R is upper triuangular square
 
 % reference: Golub, Van Loan; 3rd ed; 5.2.1
 % $Id$
@@ -10,8 +12,8 @@ if M < N
     err( 'A must have number rows >= number columns' );
 end;
 
-Q = eye(M, N);      % Q will be M x N
-R = A;              % R will be N x N .. later
+Q = eye(M, N);      % Q will be M x N (with orthogonal columns)
+R = A;              % R will be N x N (a triangle)
 betas = zeros( N, 1 );
 
 for k = 1:N
@@ -60,6 +62,7 @@ for k = (N-1):-1:1
     v(k)=1;
     v((k+1):M) = R((k+1):M,k);
     Q(k:M,k:N) = Q(k:M,k:N) - betas( k ) * v(k:M) * transpose(v(k:M)) * Q(k:M,k:N);
+                                                    % flops: 4*(N-k)(M-k)
     R((k+1):M,k) = 0;
 end;
 R = R(1:N,:);
@@ -68,3 +71,6 @@ R = R(1:N,:);
 % sum k=1:N of 4(N-k)(M-k) = 4 sum k=1:N k(M-N+k)
 % = 4 sum k^2 + 4(M-N) sum k = 4/3 N^3 + 4/2(M-N)N^2
 % = 2 N^2(M-N/3)
+% for M=N, without accumulating Q: 4/3 N^3 = 1.33 N^3
+% with accumulating Q: twice as long, 4 N^2(M-N/3), (for reduced Q)
+% for M=N, with accumulating Q:    8/3 N^3 = 2.66 N^3
