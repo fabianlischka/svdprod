@@ -6,3 +6,5 @@
 testbidighh
 testsymtridhh
 testsymqrschur
+testgksvd
+testgksvdprod
