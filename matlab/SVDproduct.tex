@@ -262,7 +262,7 @@ Now, all $\j Qt_k$ are Householder reflections, hence orthogonal and symmetric. 
 
 Then, the product $\j At_K \cdots \j At_1$ of these matrices is also upper triangular up to (and including) column $t$, so in particular, $\jt Ut A \j Vt$ is upper triangular. Last but not least, $\j Q{t+1}_0$ will be chosen such that $\jt Ut A \j V{t+1}$ is bidiagonal up to and including column $t$, that is all elements to the right of $a_{12}, a_{23}, \ldots, a_{tt+1}$ are zero.
 
-A complete implementation is on page \pageref{rc:bidigprod}.
+A complete implementation is on page \pageref{rc:bidigprod}. It requires around $(4+4K) N^3$ flops.
 
 \section{Testing}
 All algorithms were tested with respect to internal consistency (that is, are matrices that are supposed to be orthogonal really orthogonal? When the algorithm computes a decomposition, does the composition of the returned matrices recover the original matrix?), as well as by comparison to the reference solutions computed by MATLAB. 
