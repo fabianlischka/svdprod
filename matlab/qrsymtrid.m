@@ -14,7 +14,6 @@ end;
 
 R   = T;
 Q   = eye( N );
-CS  = zeros( N-1, 2 );
 
 % remove 0 on subdiagonal by premultiplication with orthogonal Givens
 % matrices Q1', Q2', ... -> obtain upper triangular R = QN-1'...Q2' Q1' T
