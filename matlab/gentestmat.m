@@ -3,7 +3,7 @@
 As      = { '-triu( ones( N ) ) + 2 * diag( ones( N, 1 ) )',
             'triu( 10*rand( N ) - 1 ) - 20 * diag( ones( N, 1 ) )',
             'rand( N )',
-            'exp(12*rand(N)-6)' % for elements of very different size
+            'exp(12*rand(N)-6).*(rand(N)-.5)' % for elements of very different size
           };
     
 % generate test matrix type k, size N
