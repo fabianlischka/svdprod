@@ -1,4 +1,4 @@
-function [ D, U, V ] = gksvd( A, tol )
+function [ D, U, V ] = gksvd( A, tol, verbose )
 % GKSVD computes the SVD of A
 % Given A MxM and tol, this computes U, V MxM orthogonal and D diagonal 
 % such that A=U(D+E)V', where two norm E is around unit roundoff x two norm A
@@ -7,8 +7,11 @@ function [ D, U, V ] = gksvd( A, tol )
 % reference: Golub, Van Loan; 3rd ed; ch. 8.6.2, alg. 8.6.2
 % $Id$
 
-if nargin == 1
-    tol = 1e-14;
+if nargin < 3
+    verbose = 0;
+    if nargin == 1
+        tol = 1e-14;
+    end;
 end;
 
 M = size( A, 1 );   % rows
@@ -26,7 +29,9 @@ q = 0;
 while q < N
     q   = 0; p = N-1;
     for k = N-1:-1:1
-        if abs( B(k,2) ) < tol*( abs( B(k,1) ) + abs( B(k+1,1) ) )
+        % note: below, we need <=, not <, otherwise we get caught in an
+        % infitite loop, if these elements are exactly zero!
+        if abs( B(k,2) ) <= tol*( abs( B(k,1) ) + abs( B(k+1,1) ) )
             B(k,2) = 0;
             if q == N-k-1   % state one
                 q = N-k;
@@ -58,7 +63,7 @@ while q < N
             % now, B( k, 1 ) approx 0, p+1 <= k <= N-q, B(N-q,2) == 0 (note:
             % even if q == 0, by the format we have chosen)
             if k < N-q
-                disp('rotating empty diagonal away to the right')
+                if verbose; disp('rotating empty diagonal away to the right'); verbose = verbose - 1; end;
                 % to do: if k<N-q, rotate that row away with Givens rotations from
                 % left, G(k,j), j=k+1:N-q
                 bulge = B(k,2);
@@ -78,7 +83,7 @@ while q < N
                     U(:,[k j]) = U(:,[k j]) * G';       % flops: 6*M
                 end % for j
             else % k==N-q
-                disp('rotating empty diagonal away UPWAYS')
+                if verbose; disp('rotating empty diagonal away UPWAYS'); verbose = verbose - 1; end;
                 % if k==N-q, then apply Givens from the 
                 % right, G(k,j), j=N-q-1:-1:p+1
                 bulge = B(N-q-1,2);
@@ -102,6 +107,10 @@ while q < N
             [ B(p+1:N-q,:), U(:,p+1:N-q), V(:,p+1:N-q) ] = gksvdstep( B(p+1:N-q,:), U(:,p+1:N-q), V(:,p+1:N-q) );
         end; 
     end; % if q
+    % BL = diag(B(:,1)) + diag(B(1:end-1,2),1)
+    % U'*A*V
+    % A
+    % U*BL*V'
     % B(:,2)'
     % disp( sprintf( '%12g   %12g   %12g', (B(1,2)), log(B(2,2)), log(B(3,2)) ) );
 end; % while q<N
