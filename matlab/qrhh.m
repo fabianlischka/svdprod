@@ -1,5 +1,7 @@
 function [Q,R] = qrhh( A )
 % % QR-decomposition, Householder reflections
+
+% reference: Golub, Van Loan; 3rd ed; 5.2.1
 % $Id$
 
 M = size( A, 1 );   % rows
