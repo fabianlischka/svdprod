@@ -14,6 +14,8 @@ As      = { '-triu( ones( M ) ) + 2 * diag( ones( M, 1 ) )',
                 'very different singular values: 1/2 .. 1/(2^N)';
             '10 * randn( M, 1 ) * rand( 1, N ) + 1e-15*rand( M, N )', 
                 'rank 1 matrix with slight perturbations';
+            '10 * randn( M, 1 ) * rand( 1, N )', 
+                'rank 1 matrix (no perturbations)';
             'W* ( diag(1e-6*ones(M,1)) + diag(ones(M-1,1),1) ) * transpose(W)',
                 '1 small eval, one evect';
             'W* ( diag(1e+6*ones(M,1)) + diag(ones(M-1,1),1) ) * transpose(W)',
