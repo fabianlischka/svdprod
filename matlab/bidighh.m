@@ -1,4 +1,4 @@
-function [ B, Q, U ] = bidighh( A );
+function [ B, U, V ] = bidighh( A );
 % BIDIGHH computes bidiagonal B=U'AV using householder reflections
 % suppose A MxN, M >= N, A real. This routine finds orthogonal U MxM, V NxN 
 % such that B = U'AV is bidiagonal (the diagonal and one superdiagonal).
