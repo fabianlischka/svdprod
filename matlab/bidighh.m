@@ -2,7 +2,7 @@
 % suppose A MxN, M >= N, A real. We will find orthogonal U MxM, V NxN 
 % such that R = U'AV is bidiagonal (diagonal, superdiagonal)
 
-% $Header$
+% $Id$
 
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols
@@ -14,12 +14,14 @@ R       = A;              % R will be M x N
 betas   = zeros( N-1, 1 );
 gammas  = zeros( N-2, 1 );
 
-for k = 1:(N-1)
+for k = 1:N
     % determine HH reflector for column A(k:N,k)
-    [ v, beta, mu ] = house( R(k:M,k) );
+    [ v, beta, mu ] = house( R(k:M,k) );            % flops: 3(M-k), N times 
     betas( k )      = beta;
-    R(k,k)          = mu;                            % = norm(x)
+    R(k,k)          = mu;                           % = norm(x)
     R(k:M,(k+1):N)  = R(k:M,(k+1):N) - beta * v * v' * R(k:M,(k+1):N);
+                                                    % flops: 5*(N-k)*(M-k)
+                                                    % (4 mult, 1 add)
     R((k+1):M,k)    = v(2:end);
     % or, if you don't want to collect it, R((k+1):M,k) = 0;
     R((k+1):M,k)    = 0;
