@@ -1,25 +1,25 @@
+function [Q,R] = qrcgs( A )
 % QR-decomposition, Classical Gram Schmidt (numerically unstable)
 % $Id$
 
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols
-K = min( M, N );    % min = steps
+if M < N
+    err( 'A must have number rows >= number columns' );
+end;
 
 % important: we initialize Q with A
-Q = A(:,1:K);       % Q will be M x K
-R = zeros( K, N );  % R will be K x N
+Q = A;              % Q will be M x N
+R = zeros( N, N );  % R will be N x N
 
-for k = 1:K
-    % orthogonalisieren
-    % iterative version
-    if 0
-    for n = 1:(k-1)
-        R(n,k) = Q(:,n)' * A(:,k);              % scalar product: M mult, M-1 add
-        Q(:,k) = Q(:,k) - Q(:,n) * R(n,k);      % M mult, M add
-    end
-    end
+for k = 1:N
+    % orthogonalisieren: iterative version, old
+    % for n = 1:(k-1)
+    %     R(n,k) = Q(:,n)' * A(:,k);              % scalar product: M mult, M-1 add
+    %     Q(:,k) = Q(:,k) - Q(:,n) * R(n,k);      % M mult, M add
+    % end
     
-    % compact version
+    % orthogonalisieren: compact version
     R(1:(k-1),k) = Q(:,1:(k-1))' * A(:,k);      % matrix product
     Q(:,k)       = A(:,k) - Q(:,1:(k-1)) * R(1:(k-1),k);
     % ie 4M*(k-1) flops
@@ -30,5 +30,5 @@ for k = 1:K
     % another 3M flops
 end
 
-% sum k=1:K ( 3M + 4M*(k-1) ) = 3MK + 2MK^2
+% flop count: sum k=1:N ( 3M + 4M*(k-1) ) = 3MN + 2MN^2
 % for M>=N, the order is 2MN^2

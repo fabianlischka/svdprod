@@ -1,15 +1,18 @@
+function [Q,R] = qrmgs( A )
 % QR-decomposition, Modified Gram Schmidt (numerically stable, but Q might not be very orthogonal)
 % $Id$
 
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols
-K = min( M, N );    % min = steps
+if M < N
+    err( 'A must have number rows >= number columns' );
+end;
 
 % important: we initialize Q with A
-Q = A(:,1:K);       % Q will be M x K
-R = zeros( K, N );  % R will be K x N
+Q = A;              % Q will be M x N
+R = zeros( N, N );  % R will be N x N
 
-for k = 1:K
+for k = 1:N
     % orthogonalisieren
     for n = 1:(k-1)
         R(n,k) = Q(:,n)' * Q(:,k);              % scalar product: M mult, M-1 add
@@ -23,5 +26,5 @@ for k = 1:K
     % another 3M flops
 end
 
-% sum k=1:K ( 3M + 4M*(k-1) ) = 3MK + 2MK^2
+% flop count: sum k=1:N ( 3M + 4M*(k-1) ) = 3MN + 2MN^2
 % for M>=N, the order is 2MN^2

@@ -1,18 +1,21 @@
+function [Q,R] = qrhh( A )
 % % QR-decomposition, Householder reflections
 % $Header$
 
 M = size( A, 1 );   % rows
 N = size( A, 2 );   % cols
-K = min( M, N );    % min = steps
+if M < N
+    err( 'A must have number rows >= number columns' );
+end;
 
-Q = eye(M, K);      % Q will be M x K
-R = A(1:K,:);       % R will be K x N
-betas = zeros( K );
+Q = eye(M, N);      % Q will be M x N
+R = A(1:N,:);       % R will be N x N
+betas = zeros( N );
 
-for k = 1:(K-1)
-    % determine HH reflector for column A(k:K,k)
-    % [ v, beta ] = house( A(k:K,k) );
-    v  = R(k:K,k);
+for k = 1:(N-1)
+    % determine HH reflector for column A(k:N,k)
+    % [ v, beta ] = house( A(k:N,k) );   - we will do it explicitly here
+    v  = R(k:N,k);
     x1 = v(1);
     sigma = v(2:end)'*v(2:end);
     if sigma == 0
@@ -32,19 +35,21 @@ for k = 1:(K-1)
         % HH reflector now: I - beta * v * v'. Note: v(1) = 1
         
         R(k,k) = mu;                            % = norm(x)
-        R(k:K,(k+1):K) = R(k:K,(k+1):K) - betas( k ) * v * v' * R(k:K,(k+1):K);
+        R(k:N,(k+1):N) = R(k:N,(k+1):N) - betas( k ) * v * v' * R(k:N,(k+1):K);
         % (note: if we computed (v*v')*R, we would neet 2MN^2 flops, but
         % with v*(v'*R) we only need 4NM!!)
         % collect Qi
-        R((k+1):K,k) = v(2:end);
+        R((k+1):N,k) = v(2:end);
 	end;
 end;
 
 % compute Q, and zero out R
-for k = (K-1):-1:1
+for k = (N-1):-1:1
     % HH reflector now: I - beta * v * v'. Note: v(1) = 1
     v(k)=1;
-    v((k+1):K) = R((k+1):K,k);
-    Q(k:K,k:K) = Q(k:K,k:K) - betas( k ) * v(k:K) * transpose(v(k:K)) * Q(k:K,k:K);
-    R((k+1):K,k) = 0;
+    v((k+1):N) = R((k+1):N,k);
+    Q(k:N,k:N) = Q(k:N,k:N) - betas( k ) * v(k:N) * transpose(v(k:N)) * Q(k:N,k:N);
+    R((k+1):N,k) = 0;
 end;
+
+% flop count: tbd
