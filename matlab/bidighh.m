@@ -3,6 +3,7 @@
 % such that R = U'AV is bidiagonal (the diagonal and one superdiagonal)
 % note: U, V not actually computed here
 
+% reference: Golub, Van Loan; 3rd ed; 5.4.3
 % $Id$
 
 M = size( A, 1 );   % rows
