@@ -10,7 +10,7 @@ L = eye( M, K );    % L will be M x K
 
 % iterative version: k m n
 if 1
-for k = 1:(K-1)         % steps
+for k = 1:K         % steps
     % pivot is A(k,k)
     for m = (k+1):M     % iterate through rows below, determine multiplier, apply to row
         mult   = U(m, k) / U(k, k);     % 1 flop, M-k-1 times
@@ -23,6 +23,7 @@ end
 end
 % Complexity: N^2 * ( M - N + 2/3 N) = N^2 * (M - 1/3 N) [ = 2/3 N^3 for M=N ] 
 % 2/3 N^3
+U=U(1:K,:);
 
 % vectorized version: k m n
 if 0
