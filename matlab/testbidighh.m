@@ -1,5 +1,6 @@
 % $Id$
 
+tol = 1e-12;
 N = 30;
 for M = 30:21:72
     disp( sprintf( '\nTesting BIDIGHH with various %g x %g matrices', M, N )); 
@@ -12,10 +13,13 @@ for M = 30:21:72
             reldev  = dev / norm( TestMat );
             svdB    = sort( svd( B ) );
             svdA    = sort( svd( TestMat ) );
-            devsvd  = norm( svdA - svdB, 'inf' );
+            devsvd  = norm( svdA - svdB, 'inf' )/norm( svdA, 'inf' );
             Udev    = norm( U'*U - eye( M ) );
             Vdev    = norm( V'*V - eye( N ) );
-            disp( sprintf( 'type %2g: err: %12g, relerr: %12g, relerrSVs: %12g, Udev: %12g, Vdev: %12g', Typ, dev, reldev, devsvd/norm( svdA, 'inf' ), Udev, Vdev ) );
+            disp( sprintf( 'type %2g: err: %12g, relerr: %12g, relerrSVs: %12g, Udev: %12g, Vdev: %12g', Typ, dev, reldev, devsvd, Udev, Vdev ) );
+            if reldev > tol || Udev > tol || Vdev > tol || devsvd > tol
+                disp( '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' );
+            end
             TestMat = TestMat';
         end;
     end;
