@@ -1,5 +1,6 @@
 % $Id$
 
+tol = 1e-10;
 disp( 'We generate symmetrized testmatrices A, and compute tridiagonal T = Q''AQ, with Q orthogonal.' );
 disp( 'We then compute evals of A and T, and display the norm of the difference (relative to the' );
 disp( 'norm of the evals itself). We also consider the norm of redidual A-QTQ'', and check' );
@@ -16,7 +17,7 @@ for N=3:37:77
         RelRes  = Res / norm( TestMat );
         Orth    = norm( Q'*Q - eye( N ) );
         disp( sprintf( 'Type %2g: eval infnorm: %12g; RelRes: %12g, Orth: %12g', Typ, ErrEv, RelRes, Orth ) );
-        if RelRes > 0.1 || Orth > 0.1 || ErrEv > 0.1
+        if RelRes > tol || Orth > tol || ErrEv > tol
             disp( '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^' );
         end
     end;
