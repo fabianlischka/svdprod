@@ -20,7 +20,7 @@ for k = 1:(N-2)
         A( k+1:N, k )   = v          ;  A( k+1, k ) = beta; 
     else
         % else leave A symmetric, tridiagonal
-        A( (k+2):N, k ) =            ;  A(k+1,k) = mu;          % mem:   N-k
+        A( (k+2):N, k ) = 0          ;  A(k+1,k) = mu;          % mem:   N-k
     end;
     % FIX: take advantage of symmetry here
     A( (k+1):N, (k+1):N ) = A( (k+1):N, (k+1):N ) - v*w' - w*v';
