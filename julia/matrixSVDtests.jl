@@ -4,10 +4,66 @@
 # eg house, symtridhh, bidiaghh, etc.
 
 
+
+# require("../src/matrixSVD.jl")
+# using matrixSVD
+
+
 function logErr(msg)
     println("SVDTestErr: ", msg)
 end
 
+
+
+# These genXYZ functions generates MxN testing matrices with certain structure and features,
+# possibly random.
+# Note: they all take M,N, with M >= N, for more consistent calling conventions, 
+# but M or N might be ignored (and a square matrix returned)
+
+function genOrthogonal(M)
+    return full(qrfact!(rand(M,M))[:Q])
+    # FIXFIXFIX - 
+# Note: should create functions "randomOrthoPreMult", "randomOrthoPostMult"
+# http://blogs.sas.com/content/iml/2012/03/28/generating-a-random-orthogonal-matrix/
+# Note: see http://www.math.wsu.edu/faculty/genz/papers/rndorth.ps
+end
+
+function genUpperOnes(M,N)
+    expl = "ones on the diagonal, -1 above. Eigenvals are 1, only 1 eigenvect, condition number quite bad."
+    return triu(-ones(M,M)) + 2*diagm(ones(M))
+end
+
+function genNegDiag(M,N)
+    expl = "upper triangular, large negative diagonal. Reasonably well conditioned."
+    return triu( 10*rand( M,M ) - 1 ) - 20 * diagm( ones( M ) )
+end
+
+function genUniform(M,N)
+    expl = "elements uniformly random -1..1. Complex evals."
+    return 2*rand( M, N ) - 1
+end
+
+function genExtSize(M,N)
+    expl = "elements of very different size. Condition ok"
+    return exp(16*rand( M, N )-15).*(rand( M, N )-.5)
+end
+
+function genExtSV(M,N)
+    expl = "very different singular values: 1/2 .. 1/(2^N)"
+    return genOrthogonal(N) * diagm(2.0.^[-1:-1:-N]) * genOrthogonal(N)
+end
+
+
+
+function genHilb(N)
+    expl = "Hilbert matrix: example of a poorly conditioned matrix. H(i,j) = 1/(i+j-1)"
+    return [1.0/(i+j-1) for i=[1:N], j=[1:N]]
+end
+
+matrixGenerators = [
+    (genUpperOnes, []),
+    (genHilb, [])
+]
 
 # tests whether a matrix Q is orthogonal (i.e. Q'*Q = I within machine tolerance)
 function testOrthogonality(Q)   
@@ -23,7 +79,7 @@ function testOrthogonality(Q)
 end
 
 
-function testHouse( x )
+function testHouse( x ) # where x is a vector
     # call (v,beta,mu) = house(x)
     # build Householder matrix H = I - beta v v'
     # want to test: 

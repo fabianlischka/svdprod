@@ -5,6 +5,9 @@
 # NOTE: this is not production quality code, use the built in functions
 
 
+# FIXFIXFIX export foo, bar
+
+
 # function house( x :: Vector{Number}) 
 # takes x : Vector, returns (v,beta,mu), v same type as x, beta, mu scalars
 # HOUSE allows you to compute a Householder reflection for given 
@@ -16,46 +19,46 @@
 # e_1 = (1 0 0 0 ...) (as a column vector) and 
 # mu = two norm( x ) = sqrt( x'x ) >= 0, and 
 # v = x - mu * e_1. 
-function house( x ) 
-    sigma = dot(x[2:],x[2:]) # useBLAS                      # flops: 2N
+function house( x :: Vector) 
+    sqrtSigma = norm(x[2:])
+# was:   sigma = dot(x[2:],x[2:]) # useBLAS                      # flops: 2N
     # FIXFIXFIX overflow! http://blogs.mathworks.com/cleve/2012/07/30/pythagorean-addition/
     # http://degiorgi.math.hr/~singer/aaa_sem/Float_Norm/p15-blue.pdf
     v     = copy(x)                                                       # mem copy: N
-    if sigma == 0  # the vector x has only length one, or all elements after the first are zero
+    if sqrtSigma == 0  # the vector x has only length one, or all elements after the first are zero
         if x[1] >= 0
-            beta = 0
+            β = 0.0
         else
-            # Note: we make this choice so that the invariance H x = mu e_1
+            # Note: we make this choice so that the invariance H x = μ e_1
             # always holds (so in this case, H x = -x = abs(x(1)) e_1)
             # otherwise we get sign errors in certain cases in routines that
             # use house and rely on that behaviour (eg. if we don't multiply
-            # the first column, but just set it [mu 0 0 0 0]')
-            beta = 2 
+            # the first column, but just set it [μ 0 0 0 0]')
+            β = 2.0
         end
-        v[1] = 1 
-        mu   = abs( x[1] )   # == norm( x );
+        v[1] = 1.0 
+        μ   = abs( x[1] )   # == norm( x );
     else    #  note: here, we always choose v = x - norm(x) e_1
-        mu = sqrt( x[1]^2 + sigma );  # == norm( x )
+        μ = hypot(x[1],sqrtSigma)  # was: sqrt( x[1]^2 + sigma )  # == norm( x )
         if x[1] <= 0
-            v[1] = x[1] - mu
+            v[1] = x[1] - μ
         else
-            v[1] = -sigma/( x[1] + mu )
-            # this is also x(1) - mu, but because of potential cancellation written as  
-            # (x(1)^2 - mu^2)/(x(1)+mu)
+            v[1] = -sqrtSigma^2/( x[1] + μ ) # -sigma/( x[1] + μ )
+            # this is also x(1) - μ, but because of potential cancellation written as  
+            # (x(1)^2 - μ^2)/(x(1)+μ)
         end
-        beta = 2*v[1]^2/( sigma + v[1]^2 )                                # flops: 5
+        β = 2*v[1]^2/( sqrtSigma^2 + v[1]^2 )                                # flops: 5
         v = v ./ v[1]                                                     # flops: N
     end
-
-    return (v,beta,mu)
+    return (v,β,μ)
 end
 
-# HH reflector now: H = I - beta .* (v * v'), and H x = mu e_1
+# HH reflector now: H = I - β .* (v * v'), and H x = μ e_1
 # flop count: about 3N (+ 10)
 
 
 
-function symtridhh!( A; requireQ = false) 
+function symtridhh!( A :: Matrix; requireQ = false) 
 # SYMTRIDHH brings a symmetric real matrix A in similar tridiagonal form T
 # using similar householder transformations, so that T = Q'AQ with Q orthogonal.
 # A must be symmetric, real. Modifies A to tridiagonal T, and returns Q if desired. 
@@ -115,7 +118,7 @@ end
 
 
 
-function bidighh!( A; requireUV = false )
+function bidighh!( A :: Matrix; requireUV = false )
 # BIDIGHH computes bidiagonal B = U'AV using householder reflections
 # suppose A MxN, M >= N, A real. This routine finds orthogonal U MxM, V NxN 
 # such that B = U'AV is bidiagonal (the diagonal and one superdiagonal).
