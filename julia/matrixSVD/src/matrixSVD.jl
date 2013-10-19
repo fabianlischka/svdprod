@@ -11,6 +11,7 @@ export bidighh!, bidighh, house, wilkinsonshift, givens, bidiagshortform
 # others
 export symtridhh!, symtridhh
 
+
 # internal funcs: gksvdstep!, gksvdsteps!
 
 
@@ -146,91 +147,90 @@ end
 bidighh( A :: Matrix; requireUV = false ) = bidighh!( copy(A); requireUV = requireUV )
 
 
-# function [ B, U, V ] = bidigprod( A )
-# % BIDIGHH computes bidiagonal B=U' AAA V using householder reflections.
-# % suppose A NxNxK, real. Without ever computing the product
-# % AAA = A(:,:,K)*...*A(:,:,2)*A(:,:,1), this routine finds
-# % orthogonal U NxN, V NxN such that B = U' AAA V is bidiagonal
-# % (the diagonal and one superdiagonal).
-# % B is returned in short format, ie the diagonal
-# % is stored in the first col of B, the superdiagonal in the
-# % second col of B, and B(end,2) == 0
+function bidigprod( A; requireUV = false )
+# BIDIGHH computes bidiagonal B=U' AAA V using householder reflections.
+# suppose A NxNxK, real. Without ever computing the product
+# AAA = A(:,:,K)*...*A(:,:,2)*A(:,:,1), this routine finds
+# orthogonal U NxN, V NxN such that B = U' AAA V is bidiagonal
+# (the diagonal and one superdiagonal).
+# B is returned in short format, ie the diagonal
+# is stored in the first col of B, the superdiagonal in the
+# second col of B, and B(end,2) == 0
 
-# % reference: Golub, Solna, van Dooren: Computing the SVD
-# % of a General Matrix Product/Quotient,
-# % SIAM J. MATRIX ANAL. APPL., Vol. 22, No. 1, pp 1-19
-# % $Id$
+# reference: Golub, Solna, van Dooren: Computing the SVD
+# of a General Matrix Product/Quotient,
+# SIAM J. MATRIX ANAL. APPL., Vol. 22, No. 1, pp 1-19
+# http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.4387&rep=rep1&type=pdf
 
-# N   = size( A, 1 );
-# if size( A, 2 ) ~= N
-#     error( 'matrices in A must be square (ie size(A,1)=size(A,2))' )
-# end;
+    N   = size( A, 1 )
+    if size( A, 2 ) ~= N
+        error( "bidigprod: matrices in A must be square (ie size(A,1)=size(A,2))" )
+    end
 
-# computevectors = (nargout > 1);
+    K   = size( A, 3 )
+    if requireUV
+        V   = eye( N )
+        A[:,:,K+1] = V    # this is U - FIXFIXFIX why?
+    end;
 
-# K   = size( A, 3 );
-# if computevectors
-#     V   = eye( N );
-#     A(:,:,K+1) = V;    % this is U
-# end;
+    for t=1:N-1
+        for k=1:K
+            ( v, beta, mu ) = house( A[ t:N, t, k ] )   # flops: 3(N-t)
+            # I-beta vv' is Q^t_k, applied to t:N
+            # multiply Ak from left...
+            A[ t:N,t:N, k ] = A[ t:N,t:N, k ] - beta.* v*v' * A[ t:N,t:N, k ]
+                                                        # flops: 4K(N-t)^2
+            # FIXFIXFIX: look into these householder updates, want to maintain symmetry, but be fast
+            if k<K || requireUV    # execute almost always
+                # ...and Ak+1 from right - here we need to multiply all columns,
+                # since we don't have the zeros needed in here
+                A[ :,t:N, k+1 ] = A[ :,t:N, k+1 ] - A[ :,t:N, k+1 ]*v*v'.*beta;
+                                                        # flops: 4(K-1)N(t-N)
+                                                        # with vector: +4N(t-N)
+            end
+        end
 
-# for t=1:N-1
-#     for k=1:K
-#         [ v, beta, mu ] = house( A( t:N, t, k ) );  % flops: 3(N-t)
-#         % I-beta vv' is Q^t_k, applied to t:N
-#         % multiply Ak from left...
-#         A( t:N,t:N, k ) = A( t:N,t:N, k ) - beta*v*v' * A( t:N,t:N, k );
-#                                                     % (flops: 4(N-t)^2)
-#                                                     % flops: 4K(N-t)^2
-#         if k<K || computevectors % execute almost always
-#             % ...and Ak+1 from right - here we need to multiply all columns,
-#             % since we don't have the zeros needed in here
-#             A( :,t:N, k+1 ) = A( :,t:N, k+1 ) - A( :,t:N, k+1 )*v*v'*beta;
-#                                                     % flops: 4(K-1)N(t-N)
-#                                                     % with vector: +4N(t-N)
-#         end;
-#     end;
+        if t < N-1
+            # now, determine the t-th row of the product
+            row = A[ t, t:N, K ]
+            for k = K-1:-1:1
+                row = row * A[ t:N, t:N, k ]            # (flops: 2(N-t)^2)
+            end
+                                                        # flops: 2K(N-t)^2
+            # and determine householder to eliminate it!
+            # (the diagonal element remains untouched (and is thrown away))
+            ( v, beta, mu ) = house( row[ 1, 2:end ]' ) # flops: 3(N-t)
+            # multiply A( 1 ) and V from the right
+            # need to multiply full columns (all rows), since might be filled
+            A[ :, t+1:N, 1 ] = A[ :,t+1:N, 1] - A[ :,t+1:N, 1 ]*v*v'*beta
+                                                        # flops: 4N(t-N)
+            if requireUV
+                V[ :,t+1:N ] = V[ :,t+1:N ]   - V[ :, t+1:N ]  *v*v'*beta
+                                                        # flops: 4N(t-N)
+            end
+        end
+        # total flops per t:  with vectors (8+4K) N(t-N) + 6K (N-t)^2
+        #                     = (4+4K) N^3
+        #                     without vectors: (4K) N^3
+    end
+    # now B = A(:,:,K+1)'*AA*V = A(:,:,K)*...*A(:,:,2)*A(:,:,1)
 
-#     if t < N-1
-#         % now, determine the t-th row of the product
-#         row = A( t, t:N, K );
-#         for k = K-1:-1:1
-#             row = row * A( t:N, t:N, k );           % (flops: 2(N-t)^2)
-#         end;
-#                                                     % flops: 2K(N-t)^2
-#         % and determine householder to eliminate it!
-#         % (the diagonal element remains untouched (and is thrown away))
-#         [ v, beta, mu ] = house( row( 1, 2:end )' );  % flops: 3(N-t)
-#         % multiply A( 1 ) and V from the right
-#         % need to multiply full columns (all rows), since might be filled
-#         A( :, t+1:N, 1 ) = A( :,t+1:N, 1 ) - A( :,t+1:N, 1 )*v*v'*beta;
-#                                                     % flops: 4N(t-N)
-#         if computevectors
-#             V( :,t+1:N ) = V( :,t+1:N )    - V( :, t+1:N )  *v*v'*beta;
-#                                                     % flops: 4N(t-N)
-#         end;
-#     end;
-#     % total flops per t:  with vectors (8+4K) N(t-N) + 6K (N-t)^2
-#     %                     = (4+4K) N^3
-#     %                     without vectors: (4K) N^3
-# end;
-# % now B = A(:,:,K+1)'*AA*V = A(:,:,K)*...*A(:,:,2)*A(:,:,1)
+    q   = ones(N,1)      # this will be the diagonal of the product B
+    e   = zeros(N-1,1)   # superdiagonal of the product B
+    # note: to compute q, e, we only need diagonal and superdiag of A !
+    for k=1:K
+        d   = diag( A[:,:,k] )
+        e   = e .* d(1:end-1) + q(2:N) .* diag( A[:,:,k], 1 )
+        q   = q .* d
+    end
 
-
-# q   = ones(N,1);     % this will be the diagonal of the product B
-# e   = zeros(N-1,1);  % superdiagonal of the product B
-# % note: to compute q, e, we only need diagonal and superdiag of A !
-# for k=1:K
-#     d   = diag( A(:,:,k) );
-#     e   = e .* d(1:end-1) + q(2:N) .* diag( A(:,:,k), 1 );
-#     q   = q .* d;
-# end;
-
-# if computevectors
-#     U = A(:,:,K+1);
-# end;
-# B = [ q [e; 0] ];
-
+    if requireUV
+        U = A[:,:,K+1]
+    end
+    B = [ q [e; 0] ]
+    return (B,U,V)
+    # note: B returned in short format
+end
 
 
 
@@ -326,9 +326,9 @@ function gksvdstep!( B, U, V )
         end
     end
 
-    x  = B( 1, 1 )^2 - mu
-    y  = B( 1, 1 ) * B( 1, 2 )
-
+    x  = B[1, 1]^2 - mu
+    y  = B[1, 1] * B[1, 2]
+    
     # B+ = U' B V =   U(N-1)' ... U2' U1' B G1 V2 V3 ... V(N-1), with G1*e1 prop T-mu*I
     for k = 1:N-1
         # compute Givens rotation, around k,k+1 FROM RIGHT, G = [c s; -s c]
@@ -425,7 +425,7 @@ function gksvdsteps!( B, U, V, tol )
             # first, determine if any element on the diagonal is zero
             # if so, rotate it aside
             k = p+1
-            smalldiag = tol * norm( B, inf ) # FIXFIXFIX infinity norm?
+            smalldiag = tol * norm( B, Inf ) # FIXFIXFIX infinity norm?
             while abs( B[ k, 1 ] ) > smalldiag  && k < N-q
                 k = k+1
             end
@@ -494,7 +494,7 @@ end
 
 function gksvd( A, tol = 1e-14 )
 # gksvd computes the SVD of A.
-# NOTE: this is an example implementation only, use the Julia SVD for serious purposes
+# NOTE: this is an example implementation only, use the Julia library SVD for production purposes!
 # Given A MxN, M>=N, and tol, this computes U MxM, V NxN orthogonal and DD diagonal
 # such that A=U(DD+E)V', where E is (small) error term
 # (in particular, the two norm of E should be around eps x two-norm A)
@@ -514,12 +514,12 @@ function gksvd( A, tol = 1e-14 )
     # gksvdsteps computes diagonal D and updates U, V such that D=U'AV
     B = bidiagshortform( A )
     D = gksvdsteps!( B, U, V, tol )
-    return (D,U,V)
+    return (U,D,V)
 end
 
 function gksvdprod( A, tol = 1e-14 )
 # gksvd computes the SVD of a product of square matrices
-# NOTE: this is an example implementation only
+# NOTE: this is an example implementation only, use the Julia library SVD for production purposes!
 # Given A NxNxK, for AAA := A(:,:,K)*...*A(:,:,1) this computes
 # U, V NxN orthogonal, and D Nx1 such that AAA=U diag(D) V'
 # Note: AAA NxN is never explicitly computed!
@@ -538,11 +538,10 @@ function gksvdprod( A, tol = 1e-14 )
     end
 
     # bidigprod! computes bidiagonal B = U' AAA V using householder reflections
-    B, U, V = bidigprod( A; requireUV = true )
-#    B = shortformat! FIXFIXFIX
+    B,U,V = bidigprod( A; requireUV = true )
     # gksvdsteps computes diagonal D and updates U, V such that D=U'AV
     D = gksvdsteps!( B, U, V, tol )
-    return (D,U,V)
+    return (U,D, V)
 end
 
 
@@ -648,4 +647,3 @@ function symtridhh!( A :: Matrix; requireQ = false)
 end
 
 symtridhh( A; requireQ = false ) = symtridhh!(copy(A); requireQ = requireQ)
-# FIXFIXFIX ???
